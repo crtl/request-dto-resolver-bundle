@@ -1,0 +1,7 @@
+services:
+  Crtl\RequestDTOResolverBundle\RequestDTOResolver:
+    arguments:
+      $validator: '@Symfony\Component\Validator\Validator\ValidatorInterface'
+    tags:
+      - controller.argument_value_resolver
+
