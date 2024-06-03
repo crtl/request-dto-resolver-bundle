@@ -16,7 +16,7 @@ Register the bundle in your Symfony application. Add the following to your `conf
 ```php
 return [
     // other bundles
-    Crtl\RequestDTOResolverBundle\CrtlRequestDTOResolverBundle::class => ['all' => true],
+    Crtl\RequestDTOResolverBundle\CrtlRequestDTOResolverBundle::class => ["all" => true],
 ];
 ```
 
@@ -55,7 +55,7 @@ class ExampleDTO
     
     // Pass string to param if property does not match param name.
     // Matches queryParamName in query params
-    #[QueryParam('queryParamName'), Assert\NotBlank]
+    #[QueryParam("queryParamName"), Assert\NotBlank]
     public string $query;
 
     // Matches id 
@@ -69,7 +69,7 @@ class ExampleDTO
 }
 ```
 
-> By default each parameter is resolved by its property name.<br/> 
+> By default, each parameter is resolved by its property name.<br/> 
 > If property name does not match parameter name you can pass an optional string to the constructor 
 > of each `*Param` attribute (see [`AbstractParam::__construct`](src/Attribute/AbstractParam.php)).
 
@@ -77,7 +77,7 @@ class ExampleDTO
 
 ### Step 2: Use the DTO in a Controller
 
-Inject the DTO into your controller action. The [`RequestValueResolver`](src/RequestValueResolver.php) will automatically instantiate and validate the DTO.
+Inject the DTO into your controller action. The [`RequestValueResolver`](src/RequestDTOResolver.php) will automatically instantiate and validate the DTO.
 
 ```php
 namespace App\Controller;
@@ -89,11 +89,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ExampleController extends AbstractController
 {
-    #[Route('/example', name: 'example')]
+    #[Route("/example", name: "example")]
     public function exampleAction(ExampleDTO $data): Response
     {
         // $data is an instance of ExampleDTO with validated request data
-        return new Response('DTO received and validated successfully!');
+        return new Response("DTO received and validated successfully!");
     }
 }
 ```
@@ -116,7 +116,7 @@ class RequestValidationExceptionListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::EXCEPTION => 'onKernelException',
+            KernelEvents::EXCEPTION => "onKernelException",
         ];
     }
 
@@ -126,8 +126,8 @@ class RequestValidationExceptionListener implements EventSubscriberInterface
 
         if ($exception instanceof RequestValidationException) {
             $response = new JsonResponse([
-                'error' => 'Validation failed',
-                'details' => $exception->getViolations(),
+                "error" => "Validation failed",
+                "details" => $exception->getViolations(),
             ], JsonResponse::HTTP_BAD_REQUEST);
 
             $event->setResponse($response);

@@ -13,7 +13,7 @@ class RouteParamTest extends TestCase
         $paramName = "test_route";
         $paramValue = "test_value";
 
-        $request = new Request([], [], ['_route_params' => [$paramName => $paramValue]]);
+        $request = new Request([], [], ["_route_params" => [$paramName => $paramValue]]);
 
         $routeParam = new RouteParam($paramName);
 
@@ -24,7 +24,7 @@ class RouteParamTest extends TestCase
     {
         $paramName = "missing_route";
 
-        $request = new Request([], [], ['_route_params' => []]);
+        $request = new Request([], [], ["_route_params" => []]);
 
         $routeParam = new RouteParam($paramName);
 

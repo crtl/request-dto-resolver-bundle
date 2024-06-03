@@ -4,13 +4,11 @@ namespace Crtl\RequestDTOResolverBundle\Attribute;
 
 use Symfony\Component\HttpFoundation\Request;
 
-
 abstract class AbstractParam
 {
     public function __construct(
         public ?string $name = null,
-    )
-    {
+    ) {
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace Crtl\RequestDTOResolverBundle\Attribute;
 
-
 use Attribute;
 use Symfony\Component\HttpFoundation\Request;
 

@@ -15,23 +15,22 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-
 #[Attribute\RequestDTO]
 class TestDTO
 {
     #[Attribute\BodyParam, Assert\NotBlank]
     public ?string $param;
 
-    #[Attribute\FileParam('fileParam'), Assert\NotNull]
+    #[Attribute\FileParam("fileParam"), Assert\NotNull]
     public ?UploadedFile $file;
 
-    #[Attribute\HeaderParam('headerParam'), Assert\NotBlank]
+    #[Attribute\HeaderParam("headerParam"), Assert\NotBlank]
     public ?string $header;
 
-    #[Attribute\QueryParam('queryParam'), Assert\NotBlank]
+    #[Attribute\QueryParam("queryParam"), Assert\NotBlank]
     public ?string $query;
 
-    #[Attribute\RouteParam('routeParam'), Assert\NotBlank]
+    #[Attribute\RouteParam("routeParam"), Assert\NotBlank]
     public ?string $route;
 }
 
@@ -94,7 +93,9 @@ class RequestDTOResolverTest extends TestCase
         foreach ($tests as $test) {
             $result = $this->resolver->resolve($request, $test);
 
-            $this->assertEquals([], $result,
+            $this->assertEquals(
+                [],
+                $result,
                 sprintf("%s::resolve did not return empty array for type %s", RequestDTOResolver::class, $test->getType())
             );
         }
@@ -107,17 +108,17 @@ class RequestDTOResolverTest extends TestCase
     public function testResolveReturnsNewInstance()
     {
         $request = new Request(
-            ['queryParam' => 'value'],
-            ['param' => 'value'],
-            ['_route_params' => ['routeParam' => 'value']],
+            ["queryParam" => "value"],
+            ["param" => "value"],
+            ["_route_params" => ["routeParam" => "value"]],
             [],
-            ['fileParam' => $this->createMock(UploadedFile::class)],
-            ['HTTP_headerParam' => 'value']
+            ["fileParam" => $this->createMock(UploadedFile::class)],
+            ["HTTP_headerParam" => "value"]
         );
 
         $argument = new ArgumentMetadata("test", TestDTO::class, false, false, null);
 
-        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
+        $this->validator->method("validate")->willReturn($this->createMock(ConstraintViolationListInterface::class));
 
         $result = $this->resolver->resolve($request, $argument);
 
@@ -141,7 +142,7 @@ class RequestDTOResolverTest extends TestCase
             }
         }), false, false, null);
 
-        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
+        $this->validator->method("validate")->willReturn($this->createMock(ConstraintViolationListInterface::class));
 
         $result = $this->resolver->resolve($request, $argument);
 
@@ -160,20 +161,20 @@ class RequestDTOResolverTest extends TestCase
         $this->expectException(RequestValidationException::class);
 
         $request = new Request(
-            ['queryParam' => 'value'],
-            ['param' => 'value'],
-            ['_route_params' => ['routeParam' => 'value']],
+            ["queryParam" => "value"],
+            ["param" => "value"],
+            ["_route_params" => ["routeParam" => "value"]],
             [],
-            ['fileParam' => $this->createMock(UploadedFile::class)],
-            ['HTTP_headerParam' => 'value']
+            ["fileParam" => $this->createMock(UploadedFile::class)],
+            ["HTTP_headerParam" => "value"]
         );
 
         $argument = new ArgumentMetadata("test", TestDTO::class, false, false, null);
 
         $violations = $this->createMock(ConstraintViolationListInterface::class);
-        $violations->method('count')->willReturn(1);
+        $violations->method("count")->willReturn(1);
 
-        $this->validator->method('validate')->willReturn($violations);
+        $this->validator->method("validate")->willReturn($violations);
 
         $this->resolver->resolve($request, $argument);
     }
@@ -188,4 +189,3 @@ class RequestDTOResolverTest extends TestCase
 
 
 }
-

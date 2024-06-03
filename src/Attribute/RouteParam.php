@@ -10,7 +10,7 @@ class RouteParam extends AbstractParam
 {
     public function getValueFromRequest(Request $request): mixed
     {
-        $routeParams = $request->attributes->get('_route_params') ?? [];
+        $routeParams = $request->attributes->get("_route_params") ?? [];
         return $routeParams[$this->name] ?? null;
     }
 
