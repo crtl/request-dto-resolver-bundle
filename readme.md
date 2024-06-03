@@ -6,7 +6,7 @@ Symfony bundle to simplify instantiation and validation of request DTOs.
 ## Installation
 
 ```bash
-composer require crtl/request-parser-bundle
+composer crtl/request-dto-resolver-bundle
 ```
 
 ## Configuration
@@ -16,7 +16,7 @@ Register the bundle in your Symfony application. Add the following to your `conf
 ```php
 return [
     // other bundles
-    Crtl\RequestParserBundle\CrtlRequestParserBundle::class => ['all' => true],
+    Crtl\RequestDTOResolverBundle\CrtlRequestDTOResolverBundle::class => ['all' => true],
 ];
 ```
 
@@ -30,11 +30,11 @@ Annotate the class with `#[RequestDTO]` and use bellow attributes for properties
 ```php
 namespace App\DTO;
 
-use Crtl\RequestParserBundle\Attribute\BodyParam;
-use Crtl\RequestParserBundle\Attribute\FileParam;
-use Crtl\RequestParserBundle\Attribute\HeaderParam;
-use Crtl\RequestParserBundle\Attribute\QueryParam;
-use Crtl\RequestParserBundle\Attribute\RouteParam;
+use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
+use Crtl\RequestDTOResolverBundle\Attribute\HeaderParam;
+use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDTOResolverBundle\Attribute\RouteParam;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDTO]
@@ -87,13 +87,13 @@ class ExampleController extends AbstractController
 
 ### Step 3: Handle Validation Errors
 
-When validation fails, a [`Crtl\RequestParserBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
+When validation fails, a [`Crtl\RequestDTOResolverBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
 You can create an event listener or override the default exception handler to customize the response.
 
 ```php
 namespace App\EventListener;
 
-use Crtl\RequestParserBundle\Exception\RequestValidationException;
+use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
