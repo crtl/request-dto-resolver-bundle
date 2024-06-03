@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Runs phpunit tests before pushing
+
+./vendor/bin/phpunit --no-configuration ./test
