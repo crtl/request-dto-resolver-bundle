@@ -108,7 +108,8 @@ You can create an event listener or override the default exception handler and h
 namespace App\EventListener;
 
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
 class RequestValidationExceptionListener implements EventSubscriberInterface
