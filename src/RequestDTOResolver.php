@@ -15,9 +15,10 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * Value resolver which creates objects which classes are annotated with #[Request] attribute
- * and validates them.
+ * Value resolver that creates and validates objects annotated with the #[RequestDTO] attribute.
  *
+ * This resolver is responsible for instantiating entities that are annotated with the #[RequestDTO] attribute,
+ * and then validating them using Symfony's validation component.
  */
 class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 {
@@ -76,11 +77,7 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
             foreach ($propertyAttributes as $propertyAttribute) {
                 /** @var AbstractParam $inst */
                 $inst = $propertyAttribute->newInstance();
-
-                // Assign the properties name as default
-                if (!$inst->name) {
-                    $inst->name = $property->getName();
-                }
+                $inst->setProperty($property);
 
                 // Retrieve and assign value
                 $value = $inst->getValueFromRequest($request);
