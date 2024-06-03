@@ -3,20 +3,25 @@
 namespace Crtl\RequestDTOResolverBundle\Test\Exception;
 
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
-use ReflectionClass;
 
 class RequestValidationExceptionTest extends TestCase
 {
-    
+
     protected ConstraintViolationListInterface $violations;
 
-    protected \stdClass $object;
+    protected stdClass $object;
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     protected function setUp(): void
     {
-        $this->object = new \stdClass();
+        $this->object = new stdClass();
         $this->violations = $this->createMock(ConstraintViolationListInterface::class);
     }
 

@@ -2,41 +2,45 @@
 
 namespace Crtl\RequestDTOResolverBundle\Test;
 
+use Crtl\RequestDTOResolverBundle\Attribute;
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
 use Crtl\RequestDTOResolverBundle\RequestDTOResolver;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Crtl\RequestDTOResolverBundle\Attribute;
-use Symfony\Component\Validator\Constraints as Assert;
-
 
 
 #[Attribute\RequestDTO]
-class TestDTO {
+class TestDTO
+{
     #[Attribute\BodyParam, Assert\NotBlank]
-    public string $param;
+    public ?string $param;
 
     #[Attribute\FileParam('fileParam'), Assert\NotNull]
-    public $file;
+    public ?UploadedFile $file;
 
     #[Attribute\HeaderParam('headerParam'), Assert\NotBlank]
-    public string $header;
+    public ?string $header;
 
     #[Attribute\QueryParam('queryParam'), Assert\NotBlank]
-    public string $query;
+    public ?string $query;
 
     #[Attribute\RouteParam('routeParam'), Assert\NotBlank]
-    public string $route;
+    public ?string $route;
 }
 
 #[Attribute\RequestDTO]
-class PrivateConstructorClass {
-    private function __construct() {}
+class PrivateConstructorClass
+{
+    private function __construct()
+    {
+    }
 }
 
 class RequestDTOResolverTest extends TestCase
@@ -49,6 +53,10 @@ class RequestDTOResolverTest extends TestCase
     protected RequestDTOResolver $resolver;
 
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     protected function setUp(): void
     {
         $this->validator = $this->createMock(ValidatorInterface::class);
@@ -57,7 +65,8 @@ class RequestDTOResolverTest extends TestCase
         $this->resolver->setLogger($this->logger);
     }
 
-    public function testResolveReturnsEmptyArrayForInvalidCandidates() {
+    public function testResolveReturnsEmptyArrayForInvalidCandidates()
+    {
         $request = new Request();
 
         // List of invalid types
@@ -78,7 +87,8 @@ class RequestDTOResolverTest extends TestCase
             new ArgumentMetadata("test", "SomeRandom\\Namespace\\IOJGIOASJGOL\\NonExistentClass", false, false, null),
 
             // Test anonymous class which does not have Request attribute
-            new ArgumentMetadata("test", get_class(new class {}), false, false, null),
+            new ArgumentMetadata("test", get_class(new class {
+            }), false, false, null),
         ];
 
         foreach ($tests as $test) {
@@ -90,7 +100,12 @@ class RequestDTOResolverTest extends TestCase
         }
     }
 
-    public function testResolveReturnsNewInstance() {
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function testResolveReturnsNewInstance()
+    {
         $request = new Request(
             ['queryParam' => 'value'],
             ['param' => 'value'],
@@ -111,6 +126,10 @@ class RequestDTOResolverTest extends TestCase
         $this->assertInstanceOf($argument->getType(), $result[0]);
     }
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     public function testResolvePassesRequestToConstructor()
     {
         $request = new Request();
@@ -118,7 +137,8 @@ class RequestDTOResolverTest extends TestCase
 
         $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
             public function __construct(public ?Request $request = null)
-            {}
+            {
+            }
         }), false, false, null);
 
         $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
@@ -131,7 +151,12 @@ class RequestDTOResolverTest extends TestCase
         $this->assertSame($request, $result[0]->request);
     }
 
-    public function testResolveThrowsException() {
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function testResolveThrowsException()
+    {
         $this->expectException(RequestValidationException::class);
 
         $request = new Request(
@@ -139,7 +164,7 @@ class RequestDTOResolverTest extends TestCase
             ['param' => 'value'],
             ['_route_params' => ['routeParam' => 'value']],
             [],
-            ['fileParam' => $this->createMock(\Symfony\Component\HttpFoundation\File\UploadedFile::class)],
+            ['fileParam' => $this->createMock(UploadedFile::class)],
             ['HTTP_headerParam' => 'value']
         );
 
@@ -153,7 +178,8 @@ class RequestDTOResolverTest extends TestCase
         $this->resolver->resolve($request, $argument);
     }
 
-    public function testReturnsEmptyResultIfConstructorIsPrivate() {
+    public function testReturnsEmptyResultIfConstructorIsPrivate()
+    {
         $argument = new ArgumentMetadata("test", PrivateConstructorClass::class, false, false, null);
 
         $result = $this->resolver->resolve(new Request(), $argument);

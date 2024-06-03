@@ -3,13 +3,12 @@
 namespace Crtl\RequestDTOResolverBundle\Exception;
 
 use InvalidArgumentException;
-use ReflectionClass;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class RequestValidationException extends InvalidArgumentException
 {
 
-    public function __construct(protected object $object, protected  ConstraintViolationListInterface $violations )
+    public function __construct(protected object $object, protected ConstraintViolationListInterface $violations)
     {
         parent::__construct("Error validating " . get_class($this->object));
     }

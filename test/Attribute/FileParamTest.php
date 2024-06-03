@@ -3,12 +3,17 @@
 namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
 class FileParamTest extends TestCase
 {
+    /**
+     * @return void
+     * @throws Exception
+     */
     public function testGetValueFromRequest()
     {
         $paramName = "test_file";

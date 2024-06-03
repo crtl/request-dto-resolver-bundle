@@ -14,9 +14,8 @@ use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-
 /**
- * Value resolver which creates objects which classes are annoteated with #[Request] attribute
+ * Value resolver which creates objects which classes are annotated with #[Request] attribute
  * and validates them.
  *
  */
@@ -25,7 +24,8 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
     use LoggerAwareTrait;
 
     public function __construct(protected ValidatorInterface $validator)
-    {}
+    {
+    }
 
     /**
      * Creates class for arguments if supported, validates it and returns it. If validation fails an exception is thrown
@@ -39,7 +39,9 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
         $type = $argument->getType();
 
         // Return if no type was hinted
-        if (!$type) return [];
+        if (!$type) {
+            return [];
+        }
 
         try {
             $reflection = new ReflectionClass($type);
@@ -50,7 +52,9 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 
         // Return if hinted class does not have Request attribute
         $attributes = $reflection->getAttributes(Attribute\RequestDTO::class);
-        if (empty($attributes)) return [];
+        if (empty($attributes)) {
+            return [];
+        }
 
         // Get all class properties
         $properties = $reflection->getProperties();
@@ -60,7 +64,8 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
             $instance = $reflection->hasMethod("__construct")
                 ? $reflection->newInstance($request)
                 : $reflection->newInstanceWithoutConstructor();
-        } catch (ReflectionException) {
+        } catch (ReflectionException $e) {
+            $this->logger->error("Unable to construct $type: " . $e->getMessage());
             return [];
         }
 
@@ -83,8 +88,6 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
             }
         }
 
-
-
         $violations = $this->validator->validate($instance);
 
         if ($violations->count()) {
@@ -93,6 +96,5 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 
         return [$instance];
     }
-
 
 }
