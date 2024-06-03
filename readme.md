@@ -25,7 +25,7 @@ return [
 ### Step 1: Create a DTO
 
 Create a class to represent your request data. 
-Annotate the class with `#[RequestDTO]` and use bellow attributes for properties to map request parameters.
+Annotate the class with [`#[RequestDTO]`](src/Attribute/RequestDTO.php) and use bellow attributes for properties to map request parameters.
 
 ```php
 namespace App\DTO;
@@ -73,7 +73,7 @@ class ExampleDTO
 > If property name does not match parameter name you can pass an optional string to the constructor 
 > of each `*Param` attribute (see [`AbstractParam::__construct`](src/Attribute/AbstractParam.php)).
 
-> Each DTO can define a constructor which accepts a `Request` object 
+> Each DTO can define an optional constructor which accepts a [`Request`](vendor/symfony/http-foundation/Request.php) object 
 
 ### Step 2: Use the DTO in a Controller
 
