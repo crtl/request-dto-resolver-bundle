@@ -100,8 +100,9 @@ class ExampleController extends AbstractController
 
 ### Step 3: Handle Validation Errors
 
-When validation fails, a [`Crtl\RequestDTOResolverBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
-You can create an event listener or override the default exception handler to handle validation errors.
+> When validation fails, a [`Crtl\RequestDTOResolverBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
+> 
+You can create an event listener or override the default exception handler and handle validation errors.
 
 ```php
 namespace App\EventListener;
