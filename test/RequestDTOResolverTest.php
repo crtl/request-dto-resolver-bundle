@@ -34,6 +34,11 @@ class TestDTO {
     public string $route;
 }
 
+#[Attribute\RequestDTO]
+class PrivateConstructorClass {
+    private function __construct() {}
+}
+
 class RequestDTOResolverTest extends TestCase
 {
 
@@ -148,5 +153,13 @@ class RequestDTOResolverTest extends TestCase
         $this->resolver->resolve($request, $argument);
     }
 
+    public function testReturnsEmptyResultIfConstructorIsPrivate() {
+        $argument = new ArgumentMetadata("test", PrivateConstructorClass::class, false, false, null);
+
+        $result = $this->resolver->resolve(new Request(), $argument);
+        $this->assertCount(0, $result);
+    }
+
 
 }
+

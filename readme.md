@@ -35,32 +35,45 @@ use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
 use Crtl\RequestDTOResolverBundle\Attribute\HeaderParam;
 use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDTOResolverBundle\Attribute\RouteParam;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDTO]
 class ExampleDTO
 {
+    // Matches someParam in request body
     #[BodyParam, Assert\NotBlank]
-    public string $body;
+    public string $someParam;
 
+    // Matches file in uploaded files
     #[FileParam, Assert\NotNull]
     public $file;
-
-    #[HeaderParam, Assert\NotBlank]
-    public string $header;
     
-    // Pass string to param if property does not match param name
+    // Matches Content-Type header in headers
+    #[HeaderParam("Content-Type"), Assert\NotBlank]
+    public string $contentType;
+    
+    // Pass string to param if property does not match param name.
+    // Matches queryParamName in query params
     #[QueryParam('queryParamName'), Assert\NotBlank]
     public string $query;
 
+    // Matches id 
     #[RouteParam, Assert\NotBlank]
-    public string $route;
+    public string $id;
+    
+    // Optionally implement constructor which accepts request object
+    public function __construct(Request $request) {
+    
+    }
 }
 ```
 
 > By default each parameter is resolved by its property name.<br/> 
 > If property name does not match parameter name you can pass an optional string to the constructor 
 > of each `*Param` attribute (see [`AbstractParam::__construct`](src/Attribute/AbstractParam.php)).
+
+> Each DTO can define a constructor which accepts a `Request` object 
 
 ### Step 2: Use the DTO in a Controller
 
@@ -88,7 +101,7 @@ class ExampleController extends AbstractController
 ### Step 3: Handle Validation Errors
 
 When validation fails, a [`Crtl\RequestDTOResolverBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
-You can create an event listener or override the default exception handler to customize the response.
+You can create an event listener or override the default exception handler to handle validation errors.
 
 ```php
 namespace App\EventListener;
