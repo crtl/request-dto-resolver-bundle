@@ -10,6 +10,10 @@
         "psr/log": "^3.0",
         "symfony/dependency-injection": "^7.1"
     },
+    "scripts": {
+        "coverage": " php -dxdebug.mode=coverage vendor/bin/phpunit --coverage-clover clover.xml",
+        "coverage-badge": "vendor/bin/php-coverage-badger coverage.xml coverage.svg"
+    },
     "autoload": {
         "psr-4": {
             "Crtl\\RequestDTOResolverBundle\\": "src/"
@@ -29,6 +33,7 @@
     ],
     "require-dev": {
         "phpunit/phpunit": "^11.1",
-        "friendsofphp/php-cs-fixer": "^3.58"
+        "friendsofphp/php-cs-fixer": "^3.58",
+        "jaschilz/php-coverage-badger": "^2.0"
     }
 }

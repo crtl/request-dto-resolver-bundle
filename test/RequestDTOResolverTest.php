@@ -222,6 +222,21 @@ class RequestDTOResolverTest extends TestCase
         $this->resolver->resolve($request, $argument);
     }
 
+    public function testResolveEmptyRequestThrowsValidationException() {
+        $this->expectException(RequestValidationException::class);
+
+        $request = new Request();
+
+        $argument = new ArgumentMetadata("test", TestDTO::class, false, false, null);
+
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $violations->method("count")->willReturn(1);
+
+        $this->validator->method("validate")->willReturn($violations);
+
+        $this->resolver->resolve($request, $argument);
+    }
+
     public function testReturnsEmptyResultIfConstructorIsPrivate()
     {
         $argument = new ArgumentMetadata("test", PrivateConstructorClass::class, false, false, null);

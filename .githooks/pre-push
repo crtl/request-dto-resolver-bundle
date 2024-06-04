@@ -2,4 +2,4 @@
 
 # Runs phpunit tests before pushing
 
-./vendor/bin/phpunit --no-configuration ./test
+./vendor/bin/phpunit ./test
