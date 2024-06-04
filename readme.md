@@ -1,6 +1,13 @@
 # crtl/request-dto-resolver-bundle
 
-Symfony bundle to simplify instantiation and validation of request DTOs.
+Symfony bundle for streamlined instantiation and validation of request DTOs.
+
+## Features
+
+1. **Automatic DTO Handling**: <br/>
+    Instantly creates and validates Data Transfer Objects (DTOs) from `Request` data, that are type-hinted in controller actions.
+2. **Symfony Validator Integration**:<br/>Leverages Symfony's built-in validator to ensure data integrity and compliance with your validation rules.
+3. **Nested DTO Support**:<br/>Handles complex request structures by supporting nested DTOs for both query and body parameters, making it easier to manage hierarchical data.
 
 
 ## Installation
@@ -43,11 +50,11 @@ class ExampleDTO
 {
     // Matches someParam in request body
     #[BodyParam, Assert\NotBlank]
-    public string $someParam;
+    public ?string $someParam;
 
     // Matches file in uploaded files
     #[FileParam, Assert\NotNull]
-    public $file;
+    public mixed $file;
     
     // Matches Content-Type header in headers
     #[HeaderParam("Content-Type"), Assert\NotBlank]
@@ -62,12 +69,24 @@ class ExampleDTO
     #[RouteParam, Assert\NotBlank]
     public string $id;
     
+    // Nested DTOs are supported for BodyParam and QueryParam
+    #[BodyParam("nested"), Assert\Valid]
+    public ?NestedRequestDTO $nestedBodyDto;
+    
+    #[QueryParam("nested")]
+    public ?NestedRequestDTO $nestedQueryParamDto;
+    
     // Optionally implement constructor which accepts request object
     public function __construct(Request $request) {
     
     }
 }
 ```
+
+> **IMPORTANT**<br/>
+> Each property must accept the type `?string` except properties that are request DTOs.<br/>
+> Otherwise PHP may throw TypeErrors at runtime because we cannot know that the request contains the valid data type before validation.
+
 
 > By default, each parameter is resolved by its property name.<br/> 
 > If property name does not match parameter name you can pass an optional string to the constructor 
@@ -137,6 +156,8 @@ class RequestValidationExceptionListener implements EventSubscriberInterface
     }
 }
 ```
+
+
 
 ## License
 

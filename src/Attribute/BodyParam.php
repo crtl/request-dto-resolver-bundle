@@ -3,20 +3,18 @@
 namespace Crtl\RequestDTOResolverBundle\Attribute;
 
 use Attribute;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Attribute to resolve value for property of {@link RequestDTO} from {@link Request::$request}
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class BodyParam extends AbstractParam
+class BodyParam extends AbstractNestedParam
 {
-
-    /**
-     * @inheritDoc
-     */
-    public function getValueFromRequest(Request $request): ?string
+    protected function getInputBag(Request $request): InputBag
     {
-        return $request->request->get($this->getName());
+        return $request->request;
     }
+
 }

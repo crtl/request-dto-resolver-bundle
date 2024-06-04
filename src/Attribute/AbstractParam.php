@@ -18,6 +18,8 @@ abstract class AbstractParam
      */
     protected ?ReflectionProperty $property = null;
 
+    protected ?AbstractParam $parent = null;
+
     /**
      * @param string|null $name Name of parameter if property name does not match parameter name
      */
@@ -25,7 +27,7 @@ abstract class AbstractParam
         /**
          * Parameter name, defaults to property name
          */
-        private ?string $name = null,
+        private readonly ?string $name = null,
     ) {
     }
 
@@ -38,6 +40,12 @@ abstract class AbstractParam
     public function setProperty(ReflectionProperty $property): self
     {
         $this->property = $property;
+        return $this;
+    }
+
+    public function setParent(AbstractParam $parent): self
+    {
+        $this->parent = $parent;
         return $this;
     }
 
