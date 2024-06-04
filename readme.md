@@ -1,5 +1,7 @@
 # crtl/request-dto-resolver-bundle
 
+![Coverage Badge](coverage.svg)
+
 Symfony bundle for streamlined instantiation and validation of request DTOs.
 
 ## Features

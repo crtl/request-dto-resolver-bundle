@@ -25,15 +25,10 @@ abstract class AbstractNestedParam extends AbstractParam
         $name = $this->getName();
         $parentName = $this->parent?->getName();
 
-        $value = $data[$parentName ?? $name];
+        $value = $data[$parentName ?? $name] ?? null;
 
         if ($parentName) {
-            if (is_array($value)) {
-                return $value[$name] ?? null;
-            } elseif (is_object($value)) {
-                return $value->{$name} ?? null;
-            }
-            return null;
+            return $value[$name] ?? null;
         }
 
         return $value;
