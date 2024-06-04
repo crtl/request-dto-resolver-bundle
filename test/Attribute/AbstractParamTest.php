@@ -13,28 +13,26 @@ class TestClass
     public string $testProperty;
 }
 
+class TestParam extends AbstractParam
+{
+    public function getValueFromRequest(Request $request): mixed
+    {
+        return $request->request->get($this->getName());
+    }
+}
+
 class AbstractParamTest extends TestCase
 {
     public function testGetNameWithExplicitName()
     {
-        $param = new class("testName") extends AbstractParam {
-            public function getValueFromRequest(Request $request): mixed
-            {
-                return $request->request->get($this->getName());
-            }
-        };
+        $param = new TestParam("testName");
 
         $this->assertEquals("testName", $param->getName());
     }
 
     public function testGetNameWithPropertyName()
     {
-        $param = new class() extends AbstractParam {
-            public function getValueFromRequest(Request $request): mixed
-            {
-                return $request->request->get($this->getName());
-            }
-        };
+        $param = new TestParam;
 
         $property = new ReflectionProperty(TestClass::class, "testProperty");
         $param->setProperty($property);
@@ -46,24 +44,14 @@ class AbstractParamTest extends TestCase
     {
         $this->expectException(LogicException::class);
 
-        $param = new class() extends AbstractParam {
-            public function getValueFromRequest(Request $request): mixed
-            {
-                return $request->request->get($this->getName());
-            }
-        };
+        $param = new TestParam;
 
         $param->getName();
     }
 
     public function testSetProperty()
     {
-        $param = new class() extends AbstractParam {
-            public function getValueFromRequest(Request $request): mixed
-            {
-                return $request->request->get($this->getName());
-            }
-        };
+        $param = new TestParam;
 
         $property = new ReflectionProperty(TestClass::class, "testProperty");
         $param->setProperty($property);
@@ -75,12 +63,7 @@ class AbstractParamTest extends TestCase
     {
         $request = new Request([], ["param" => "value"]);
 
-        $param = new class() extends AbstractParam {
-            public function getValueFromRequest(Request $request): mixed
-            {
-                return $request->request->get("param");
-            }
-        };
+        $param = new TestParam("param");
 
         $this->assertEquals("value", $param->getValueFromRequest($request));
     }

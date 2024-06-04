@@ -1,4 +1,21 @@
-<?php
+<?php /** @noinspection PhpClassCantBeUsedAsAttributeInspection */
+/** @noinspection PhpClassCantBeUsedAsAttributeInspection */
+/** @noinspection PhpClassCantBeUsedAsAttributeInspection */
+/** @noinspection PhpClassCantBeUsedAsAttributeInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+
+/** @noinspection PhpUnhandledExceptionInspection */
 
 namespace Crtl\RequestDTOResolverBundle\Test;
 
@@ -8,6 +25,7 @@ use Crtl\RequestDTOResolverBundle\RequestDTOResolver;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use ReflectionException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
@@ -18,6 +36,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Attribute\RequestDTO]
 class TestDTO
 {
+
+    #[Attribute\BodyParam]
+    public $paramNoType;
+
+    #[Attribute\BodyParam]
+    public string|null|int $unionType;
+
     #[Attribute\BodyParam, Assert\NotBlank]
     public ?string $param;
 
@@ -40,6 +65,21 @@ class PrivateConstructorClass
     private function __construct()
     {
     }
+}
+
+
+#[Attribute\RequestDTO]
+class NestedBodyDTO
+{
+    #[Attribute\BodyParam('innerBody'), Assert\NotBlank]
+    public ?string $innerBody;
+}
+
+#[Attribute\RequestDTO]
+class NestedQueryDTO
+{
+    #[Attribute\QueryParam('innerQuery'), Assert\NotBlank]
+    public string $innerQuery;
 }
 
 class RequestDTOResolverTest extends TestCase
@@ -104,6 +144,7 @@ class RequestDTOResolverTest extends TestCase
     /**
      * @return void
      * @throws Exception
+     * @throws ReflectionException
      */
     public function testResolveReturnsNewInstance()
     {
@@ -130,6 +171,7 @@ class RequestDTOResolverTest extends TestCase
     /**
      * @return void
      * @throws Exception
+     * @throws ReflectionException
      */
     public function testResolvePassesRequestToConstructor()
     {
@@ -155,6 +197,7 @@ class RequestDTOResolverTest extends TestCase
     /**
      * @return void
      * @throws Exception
+     * @throws ReflectionException
      */
     public function testResolveThrowsException()
     {
@@ -185,6 +228,86 @@ class RequestDTOResolverTest extends TestCase
 
         $result = $this->resolver->resolve(new Request(), $argument);
         $this->assertCount(0, $result);
+    }
+
+    public function testResolveNestedBodyParam()
+    {
+        $request = new Request([], ['nested' => ['innerBody' => 'value']]);
+
+        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+            #[Attribute\BodyParam('nested'), Assert\Valid, Assert\Optional]
+            public ?NestedBodyDTO $nested = null;
+        }), false, false, null);
+
+        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
+
+        $result = $this->resolver->resolve($request, $argument);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+        $this->assertInstanceOf($argument->getType(), $result[0]);
+        $this->assertInstanceOf(NestedBodyDTO::class, $result[0]->nested);
+        $this->assertEquals('value', $result[0]->nested->innerBody);
+    }
+
+    public function testResolveNestedBodyParamNull()
+    {
+        $request = new Request([], ['nested' => null]);
+
+        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+            #[Attribute\BodyParam('nested'), Assert\Valid, Assert\Optional]
+            public ?NestedBodyDTO $nested = null;
+        }), false, false, null);
+
+        $this->validator->method('validate')
+            ->willReturn($this->createMock(ConstraintViolationListInterface::class));
+
+        $result = $this->resolver->resolve($request, $argument);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+        $this->assertInstanceOf($argument->getType(), $result[0]);
+        $this->assertNull($result[0]->nested);
+    }
+
+    public function testResolveNestedQueryParam()
+    {
+        $request = new Request(['nested' => ['innerQuery' => 'value']]);
+
+        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+            #[Attribute\QueryParam('nested'), Assert\Valid, Assert\Optional]
+            public ?NestedQueryDTO $nested = null;
+        }), false, false, null);
+
+        $this->validator->method('validate')
+            ->willReturn($this->createMock(ConstraintViolationListInterface::class));
+
+        $result = $this->resolver->resolve($request, $argument);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+        $this->assertInstanceOf($argument->getType(), $result[0]);
+        $this->assertInstanceOf(NestedQueryDTO::class, $result[0]->nested);
+        $this->assertEquals('value', $result[0]->nested->innerQuery);
+    }
+
+    public function testResolveNestedQueryParamNull()
+    {
+        $request = new Request(['nested' => null]);
+
+        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+            #[Attribute\QueryParam('nested'), Assert\Valid, Assert\Optional]
+            public ?NestedQueryDTO $nested = null;
+        }), false, false, null);
+
+        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
+
+        $result = $this->resolver->resolve($request, $argument);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+        $this->assertInstanceOf($argument->getType(), $result[0]);
+        $this->assertNull($result[0]->nested);
     }
 
 
