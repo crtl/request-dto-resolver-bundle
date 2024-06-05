@@ -1,6 +1,12 @@
 # crtl/request-dto-resolver-bundle
 
 ![Coverage Badge](coverage.svg)
+[![Latest Stable Version](http://poser.pugx.org/crtl/request-dto-resolver-bundle/v)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
+[![Total Downloads](http://poser.pugx.org/crtl/request-dto-resolver-bundle/downloads)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
+[![Latest Unstable Version](http://poser.pugx.org/crtl/request-dto-resolver-bundle/v/unstable)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
+[![License](http://poser.pugx.org/crtl/request-dto-resolver-bundle/license)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
+[![PHP Version Require](http://poser.pugx.org/crtl/request-dto-resolver-bundle/require/php)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
+
 
 Symfony bundle for streamlined instantiation and validation of request DTOs.
 
