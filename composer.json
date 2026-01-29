@@ -11,6 +11,7 @@
         "symfony/dependency-injection": "^7.1"
     },
     "scripts": {
+        "php-cs-fixer": "vendor/bin/php-cs-fixer fix",
         "coverage": " php -dxdebug.mode=coverage vendor/bin/phpunit --coverage-clover clover.xml",
         "coverage-badge": "vendor/bin/php-coverage-badger coverage.xml coverage.svg"
     },
@@ -33,7 +34,7 @@
     ],
     "require-dev": {
         "phpunit/phpunit": "^11.1",
-        "friendsofphp/php-cs-fixer": "^3.58",
+        "friendsofphp/php-cs-fixer": "^v3.93.1",
         "jaschilz/php-coverage-badger": "^2.0"
     }
 }

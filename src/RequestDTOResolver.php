@@ -8,11 +8,6 @@ use Crtl\RequestDTOResolverBundle\Attribute\RequestDTO;
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use ReflectionAttribute;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionNamedType;
-use ReflectionUnionType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
@@ -28,17 +23,17 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    public const DTO_INSTANCES_ATTRIBUTE_KEY = '_request_dto_instances';
+
     public function __construct(protected ValidatorInterface $validator)
     {
     }
 
     /**
-     * Creates class for arguments if supported, validates it and returns it. If validation fails an exception is thrown
-     * @param Request $request
-     * @param ArgumentMetadata $argument
-     * @return iterable
+     * Creates class for arguments if supported, validates it and returns it. If validation fails an exception is thrown.
+     *
      * @throws RequestValidationException
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
@@ -49,7 +44,7 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
             return [];
         }
 
-        $reflection = $this->createReflectionIfClassRequestDto($type);
+        $reflection = $this->createRequestDtoReflection($type);
 
         // Return if hinted class does not have Request attribute
         if (!$reflection) {
@@ -62,44 +57,49 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
             return [];
         }
 
-        // Validate object
-        $violations = $this->validator->validate($object);
-        if ($violations->count()) {
-            throw new RequestValidationException($object, $violations);
-        }
+        // Store instance in request attributes to be validated later on kernel.controller_arguments event
+        $request->attributes->set(self::DTO_INSTANCES_ATTRIBUTE_KEY, array_merge(
+            $request->attributes->get(self::DTO_INSTANCES_ATTRIBUTE_KEY, []),
+            [
+                get_class($object) => $object,
+            ]
+        ));
 
         return [$object];
     }
 
-
     /**
      * @template T
-     * @param Request $request The request object
-     * @param ReflectionClass $reflection Reflection class to create instance of
+     *
+     * @param Request            $request         The request object
+     * @param \ReflectionClass   $reflection      Reflection class to create instance of
      * @param AbstractParam|null $parentAttribute Optional parent attribute passed when creating nested objects
+     *
      * @return T|null
-     * @throws ReflectionException
+     *
+     * @throws \ReflectionException
      */
-    protected function createObject(Request $request, ReflectionClass $reflection, ?AbstractParam $parentAttribute = null): mixed
+    protected function createObject(Request $request, \ReflectionClass $reflection, ?AbstractParam $parentAttribute = null): mixed
     {
         // Get all class properties
         $properties = $reflection->getProperties();
 
         // Create new class instance
         try {
-            $instance = $reflection->hasMethod("__construct")
+            $instance = $reflection->hasMethod('__construct')
                 ? $reflection->newInstance($request)
                 : $reflection->newInstanceWithoutConstructor();
-        } catch (ReflectionException $e) {
-            $this->logger->error(sprintf("Unable to instantiate class %s: %s", $reflection->getName(), $e->getMessage()));
+        } catch (\ReflectionException $e) {
+            $this->logger->error(sprintf('Unable to instantiate class %s: %s', $reflection->getName(), $e->getMessage()));
+
             return null;
         }
 
         // Iterate reflection properties
         foreach ($properties as $property) {
-            $propertyAttributes = $property->getAttributes(AbstractParam::class, ReflectionAttribute::IS_INSTANCEOF);
+            $propertyAttributes = $property->getAttributes(AbstractParam::class, \ReflectionAttribute::IS_INSTANCEOF);
 
-            $dtoReflection = $this->createReflectionIfTypeRequestDto($property->getType());
+            $dtoReflection = $this->createReflectionForRequestDtoProperty($property->getType());
 
             foreach ($propertyAttributes as $propertyAttribute) {
                 /** @var AbstractParam $inst */
@@ -131,53 +131,49 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
     }
 
     /**
-     * Checks if $className is a class which has {@link RequestDTO} attribute and returns reflection class or false
+     * Checks if $className is a class which has {@link RequestDTO} attribute and returns reflection class for said dto or false otherwise.
      *
      * @param class-string $className
-     * @return ReflectionClass|false
      */
-    protected function createReflectionIfClassRequestDto(string $className): ReflectionClass|false
+    protected function createRequestDtoReflection(string $className): \ReflectionClass|false
     {
         if (!class_exists($className)) {
             return false;
         }
 
-        $reflection = new ReflectionClass($className);
+        $reflection = new \ReflectionClass($className);
 
         // Return if hinted class does not have Request attribute
-        $attributes = $reflection->getAttributes(Attribute\RequestDTO::class);
+        $attributes = $reflection->getAttributes(RequestDTO::class);
+
         return !empty($attributes) ? $reflection : false;
     }
 
     /**
-     * Checks if type contains classname which has {@link RequestDTO} attribute
-     *
-     * @param ReflectionNamedType|ReflectionUnionType|null $type
-     * @return ReflectionClass|false
+     * Checks if type contains classname which has {@link RequestDTO} attribute.
      */
-    protected function createReflectionIfTypeRequestDto(null|ReflectionNamedType|ReflectionUnionType $type): ReflectionClass|false
+    protected function createReflectionForRequestDtoProperty(\ReflectionNamedType|\ReflectionUnionType|null $type): \ReflectionClass|false
     {
         if (!$type) {
             return false;
         }
 
-        if ($type instanceof ReflectionNamedType) {
+        if ($type instanceof \ReflectionNamedType) {
             $types = [$type];
         } else {
             $types = $type->getTypes();
         }
 
         // Remove nullable flags from types
-        $types = array_map(fn ($t) => ltrim($t, "?"), $types);
+        $types = array_map(fn ($t) => ltrim($t, '?'), $types);
 
         foreach ($types as $type) {
             // Check if class is a request dto and return true if so
-            if ($r = $this->createReflectionIfClassRequestDto($type)) {
+            if ($r = $this->createRequestDtoReflection($type)) {
                 return $r;
             }
         }
 
         return false;
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
 use PHPUnit\Framework\TestCase;
@@ -10,8 +10,8 @@ class QueryParamTest extends TestCase
 {
     public function testGetValueFromRequest()
     {
-        $paramName = "test_query";
-        $paramValue = "test_value";
+        $paramName = 'test_query';
+        $paramValue = 'test_value';
 
         $request = new Request([$paramName => $paramValue]);
 
@@ -22,7 +22,7 @@ class QueryParamTest extends TestCase
 
     public function testGetValueFromRequestWithMissingQueryParam()
     {
-        $paramName = "missing_query";
+        $paramName = 'missing_query';
 
         $request = new Request();
 

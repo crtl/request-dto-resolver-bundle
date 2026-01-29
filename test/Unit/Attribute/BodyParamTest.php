@@ -1,6 +1,6 @@
 <?php
 
-namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
 use PHPUnit\Framework\TestCase;
@@ -10,8 +10,8 @@ class BodyParamTest extends TestCase
 {
     public function testGetValueFromRequest()
     {
-        $paramName = "test_param";
-        $paramValue = "test_value";
+        $paramName = 'test_param';
+        $paramValue = 'test_value';
 
         $request = new Request([], [$paramName => $paramValue]);
 
@@ -23,7 +23,7 @@ class BodyParamTest extends TestCase
     public function testGetValueFromRequestWithMissingParam()
     {
         $request = new Request();
-        $bodyParam = new BodyParam("missing_param");
+        $bodyParam = new BodyParam('missing_param');
 
         $this->assertNull($bodyParam->getValueFromRequest($request));
     }

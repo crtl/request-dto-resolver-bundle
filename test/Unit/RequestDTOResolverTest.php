@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpClassCantBeUsedAsAttributeInspection */
+<?php
+
+/** @noinspection PhpClassCantBeUsedAsAttributeInspection */
 /** @noinspection PhpClassCantBeUsedAsAttributeInspection */
 /** @noinspection PhpClassCantBeUsedAsAttributeInspection */
 /** @noinspection PhpClassCantBeUsedAsAttributeInspection */
@@ -25,7 +27,6 @@ use Crtl\RequestDTOResolverBundle\RequestDTOResolver;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use ReflectionException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
@@ -36,26 +37,25 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Attribute\RequestDTO]
 class TestDTO
 {
-
     #[Attribute\BodyParam]
     public $paramNoType;
 
     #[Attribute\BodyParam]
-    public string|null|int $unionType;
+    public string|int|null $unionType;
 
     #[Attribute\BodyParam, Assert\NotBlank]
     public ?string $param;
 
-    #[Attribute\FileParam("fileParam"), Assert\NotNull]
+    #[Attribute\FileParam('fileParam'), Assert\NotNull]
     public ?UploadedFile $file;
 
-    #[Attribute\HeaderParam("headerParam"), Assert\NotBlank]
+    #[Attribute\HeaderParam('headerParam'), Assert\NotBlank]
     public ?string $header;
 
-    #[Attribute\QueryParam("queryParam"), Assert\NotBlank]
+    #[Attribute\QueryParam('queryParam'), Assert\NotBlank]
     public ?string $query;
 
-    #[Attribute\RouteParam("routeParam"), Assert\NotBlank]
+    #[Attribute\RouteParam('routeParam'), Assert\NotBlank]
     public ?string $route;
 }
 
@@ -66,7 +66,6 @@ class PrivateConstructorClass
     {
     }
 }
-
 
 #[Attribute\RequestDTO]
 class NestedBodyDTO
@@ -84,16 +83,13 @@ class NestedQueryDTO
 
 class RequestDTOResolverTest extends TestCase
 {
-
     protected ValidatorInterface $validator;
 
     protected LoggerInterface $logger;
 
     protected RequestDTOResolver $resolver;
 
-
     /**
-     * @return void
      * @throws Exception
      */
     protected function setUp(): void
@@ -111,22 +107,22 @@ class RequestDTOResolverTest extends TestCase
         // List of invalid types
         /** @var ArgumentMetadata[] $tests */
         $tests = [
-            new ArgumentMetadata("test", null, false, false, null),
-            new ArgumentMetadata("test", "int", false, false, null),
-            new ArgumentMetadata("test", "float", false, false, null),
-            new ArgumentMetadata("test", "string", false, false, null),
-            new ArgumentMetadata("test", "bool", false, false, null),
-            new ArgumentMetadata("test", "array", false, false, null),
-            new ArgumentMetadata("test", "callable", false, false, null),
-            new ArgumentMetadata("test", "iterable", false, false, null),
-            new ArgumentMetadata("test", "object", false, false, null),
-            new ArgumentMetadata("test", "mixed", false, false, null),
+            new ArgumentMetadata('test', null, false, false, null),
+            new ArgumentMetadata('test', 'int', false, false, null),
+            new ArgumentMetadata('test', 'float', false, false, null),
+            new ArgumentMetadata('test', 'string', false, false, null),
+            new ArgumentMetadata('test', 'bool', false, false, null),
+            new ArgumentMetadata('test', 'array', false, false, null),
+            new ArgumentMetadata('test', 'callable', false, false, null),
+            new ArgumentMetadata('test', 'iterable', false, false, null),
+            new ArgumentMetadata('test', 'object', false, false, null),
+            new ArgumentMetadata('test', 'mixed', false, false, null),
 
             // Test nonexistent class
-            new ArgumentMetadata("test", "SomeRandom\\Namespace\\IOJGIOASJGOL\\NonExistentClass", false, false, null),
+            new ArgumentMetadata('test', 'SomeRandom\\Namespace\\IOJGIOASJGOL\\NonExistentClass', false, false, null),
 
             // Test anonymous class which does not have Request attribute
-            new ArgumentMetadata("test", get_class(new class {
+            new ArgumentMetadata('test', get_class(new class {
             }), false, false, null),
         ];
 
@@ -136,30 +132,31 @@ class RequestDTOResolverTest extends TestCase
             $this->assertEquals(
                 [],
                 $result,
-                sprintf("%s::resolve did not return empty array for type %s", RequestDTOResolver::class, $test->getType())
+                sprintf('%s::resolve did not return empty array for type %s', RequestDTOResolver::class, $test->getType())
             );
         }
     }
 
     /**
      * @return void
+     *
      * @throws Exception
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testResolveReturnsNewInstance()
     {
         $request = new Request(
-            ["queryParam" => "value"],
-            ["param" => "value"],
-            ["_route_params" => ["routeParam" => "value"]],
+            ['queryParam' => 'value'],
+            ['param' => 'value'],
+            ['_route_params' => ['routeParam' => 'value']],
             [],
-            ["fileParam" => $this->createMock(UploadedFile::class)],
-            ["HTTP_headerParam" => "value"]
+            ['fileParam' => $this->createMock(UploadedFile::class)],
+            ['HTTP_headerParam' => 'value']
         );
 
-        $argument = new ArgumentMetadata("test", TestDTO::class, false, false, null);
+        $argument = new ArgumentMetadata('test', TestDTO::class, false, false, null);
 
-        $this->validator->method("validate")->willReturn($this->createMock(ConstraintViolationListInterface::class));
+        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
 
         $result = $this->resolver->resolve($request, $argument);
 
@@ -170,21 +167,21 @@ class RequestDTOResolverTest extends TestCase
 
     /**
      * @return void
+     *
      * @throws Exception
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testResolvePassesRequestToConstructor()
     {
         $request = new Request();
 
-
-        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+        $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
             public function __construct(public ?Request $request = null)
             {
             }
         }), false, false, null);
 
-        $this->validator->method("validate")->willReturn($this->createMock(ConstraintViolationListInterface::class));
+        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
 
         $result = $this->resolver->resolve($request, $argument);
 
@@ -196,50 +193,52 @@ class RequestDTOResolverTest extends TestCase
 
     /**
      * @return void
+     *
      * @throws Exception
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
-    public function testResolveThrowsException()
+    public function testResolveRegistersExceptionInRequestAttributes()
     {
-        $this->expectException(RequestValidationException::class);
-
         $request = new Request(
-            ["queryParam" => "value"],
-            ["param" => "value"],
-            ["_route_params" => ["routeParam" => "value"]],
+            ['queryParam' => 'value'],
+            ['param' => 'value'],
+            ['_route_params' => ['routeParam' => 'value']],
             [],
-            ["fileParam" => $this->createMock(UploadedFile::class)],
-            ["HTTP_headerParam" => "value"]
+            ['fileParam' => $this->createMock(UploadedFile::class)],
+            ['HTTP_headerParam' => 'value']
         );
 
-        $argument = new ArgumentMetadata("test", TestDTO::class, false, false, null);
+        $argument = new ArgumentMetadata('test', TestDTO::class, false, false, null);
 
         $violations = $this->createMock(ConstraintViolationListInterface::class);
-        $violations->method("count")->willReturn(1);
+        $violations->method('count')->willReturn(1);
 
-        $this->validator->method("validate")->willReturn($violations);
+        $this->validator->method('validate')->willReturn($violations);
 
         $this->resolver->resolve($request, $argument);
+
+        self::assertRequestAttributesContainsDto(TestDTO::class, $request);
     }
 
-    public function testResolveEmptyRequestThrowsValidationException() {
-        $this->expectException(RequestValidationException::class);
-
+    public function testResolveEmptyRequestThrowsValidationException()
+    {
         $request = new Request();
 
-        $argument = new ArgumentMetadata("test", TestDTO::class, false, false, null);
+        $argument = new ArgumentMetadata('test', TestDTO::class, false, false, null);
 
         $violations = $this->createMock(ConstraintViolationListInterface::class);
-        $violations->method("count")->willReturn(1);
+        $violations->method('count')->willReturn(1);
 
-        $this->validator->method("validate")->willReturn($violations);
+        $this->validator->method('validate')->willReturn($violations);
 
         $this->resolver->resolve($request, $argument);
+
+        self::assertRequestAttributesContainsDto(TestDTO::class, $request);
     }
 
     public function testReturnsEmptyResultIfConstructorIsPrivate()
     {
-        $argument = new ArgumentMetadata("test", PrivateConstructorClass::class, false, false, null);
+        $argument = new ArgumentMetadata('test', PrivateConstructorClass::class, false, false, null);
 
         $result = $this->resolver->resolve(new Request(), $argument);
         $this->assertCount(0, $result);
@@ -249,7 +248,7 @@ class RequestDTOResolverTest extends TestCase
     {
         $request = new Request([], ['nested' => ['innerBody' => 'value']]);
 
-        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+        $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
             #[Attribute\BodyParam('nested'), Assert\Valid, Assert\Optional]
             public ?NestedBodyDTO $nested = null;
         }), false, false, null);
@@ -269,7 +268,7 @@ class RequestDTOResolverTest extends TestCase
     {
         $request = new Request([], ['nested' => null]);
 
-        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+        $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
             #[Attribute\BodyParam('nested'), Assert\Valid, Assert\Optional]
             public ?NestedBodyDTO $nested = null;
         }), false, false, null);
@@ -289,7 +288,7 @@ class RequestDTOResolverTest extends TestCase
     {
         $request = new Request(['nested' => ['innerQuery' => 'value']]);
 
-        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+        $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
             #[Attribute\QueryParam('nested'), Assert\Valid, Assert\Optional]
             public ?NestedQueryDTO $nested = null;
         }), false, false, null);
@@ -310,7 +309,7 @@ class RequestDTOResolverTest extends TestCase
     {
         $request = new Request(['nested' => null]);
 
-        $argument = new ArgumentMetadata("test", get_class(new #[Attribute\RequestDTO] class {
+        $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
             #[Attribute\QueryParam('nested'), Assert\Valid, Assert\Optional]
             public ?NestedQueryDTO $nested = null;
         }), false, false, null);
@@ -325,5 +324,25 @@ class RequestDTOResolverTest extends TestCase
         $this->assertNull($result[0]->nested);
     }
 
+    private static function assertRequestAttributesContainsDto(string $className, Request $request): void
+    {
+        $attrs = $request->attributes->all();
 
+        self::assertArrayHasKey(RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY, $attrs);
+        self::assertIsArray($attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
+        self::assertArrayHasKey($className, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
+
+        self::assertInstanceOf($className, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY][$className]);
+    }
+
+    private static function assertValidationExceptionRegisteredForClass(string $className, Request $request): void
+    {
+        $attrs = $request->attributes->all();
+
+        self::assertArrayHasKey(RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY, $attrs);
+        self::assertIsArray($attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
+        self::assertArrayHasKey($className, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
+
+        self::assertInstanceOf(RequestValidationException::class, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY][$className]);
+    }
 }

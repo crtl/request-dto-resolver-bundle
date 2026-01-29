@@ -1,7 +1,10 @@
 services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
   Crtl\RequestDTOResolverBundle\RequestDTOResolver:
-    arguments:
-      $validator: '@Symfony\Component\Validator\Validator\ValidatorInterface'
-    tags:
-      - controller.argument_value_resolver
+
+  Crtl\RequestDTOResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber:
+
 

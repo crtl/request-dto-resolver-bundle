@@ -1,6 +1,6 @@
 <?php
 
-namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
 use PHPUnit\Framework\MockObject\Exception;
@@ -12,11 +12,12 @@ class FileParamTest extends TestCase
 {
     /**
      * @return void
+     *
      * @throws Exception
      */
     public function testGetValueFromRequest()
     {
-        $paramName = "test_file";
+        $paramName = 'test_file';
         $uploadedFile = $this->createMock(UploadedFile::class);
 
         $request = new Request([], [], [], [], [$paramName => $uploadedFile]);
@@ -28,7 +29,7 @@ class FileParamTest extends TestCase
 
     public function testGetValueFromRequestWithMissingFile()
     {
-        $paramName = "missing_file";
+        $paramName = 'missing_file';
 
         $request = new Request();
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\HeaderParam;
 use PHPUnit\Framework\TestCase;
@@ -10,10 +10,10 @@ class HeaderParamTest extends TestCase
 {
     public function testGetValueFromRequest()
     {
-        $paramName = "test_header";
-        $paramValue = "test_value";
+        $paramName = 'test_header';
+        $paramValue = 'test_value';
 
-        $request = new Request([], [], [], [], [], ["HTTP_" . strtoupper($paramName) => $paramValue]);
+        $request = new Request([], [], [], [], [], ['HTTP_'.strtoupper($paramName) => $paramValue]);
 
         $headerParam = new HeaderParam($paramName);
 
@@ -22,7 +22,7 @@ class HeaderParamTest extends TestCase
 
     public function testGetValueFromRequestWithMissingHeader()
     {
-        $paramName = "missing_header";
+        $paramName = 'missing_header';
 
         $request = new Request();
 

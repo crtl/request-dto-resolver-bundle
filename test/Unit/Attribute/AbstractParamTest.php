@@ -1,11 +1,9 @@
 <?php
 
-namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\AbstractParam;
-use LogicException;
 use PHPUnit\Framework\TestCase;
-use ReflectionProperty;
 use Symfony\Component\HttpFoundation\Request;
 
 class TestClass
@@ -25,35 +23,35 @@ class AbstractParamTest extends TestCase
 {
     public function testGetNameWithExplicitName()
     {
-        $param = new TestParam("testName");
+        $param = new TestParam('testName');
 
-        $this->assertEquals("testName", $param->getName());
+        $this->assertEquals('testName', $param->getName());
     }
 
     public function testGetNameWithPropertyName()
     {
-        $param = new TestParam;
+        $param = new TestParam();
 
-        $property = new ReflectionProperty(TestClass::class, "testProperty");
+        $property = new \ReflectionProperty(TestClass::class, 'testProperty');
         $param->setProperty($property);
 
-        $this->assertEquals("testProperty", $param->getName());
+        $this->assertEquals('testProperty', $param->getName());
     }
 
     public function testGetNameThrowsLogicException()
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
 
-        $param = new TestParam;
+        $param = new TestParam();
 
         $param->getName();
     }
 
     public function testSetProperty()
     {
-        $param = new TestParam;
+        $param = new TestParam();
 
-        $property = new ReflectionProperty(TestClass::class, "testProperty");
+        $property = new \ReflectionProperty(TestClass::class, 'testProperty');
         $param->setProperty($property);
 
         $this->assertSame($property, $param->getProperty());
@@ -61,10 +59,10 @@ class AbstractParamTest extends TestCase
 
     public function testGetValueFromRequest()
     {
-        $request = new Request([], ["param" => "value"]);
+        $request = new Request([], ['param' => 'value']);
 
-        $param = new TestParam("param");
+        $param = new TestParam('param');
 
-        $this->assertEquals("value", $param->getValueFromRequest($request));
+        $this->assertEquals('value', $param->getValueFromRequest($request));
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Crtl\RequestDTOResolverBundle\Test\Attribute;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\RouteParam;
 use PHPUnit\Framework\TestCase;
@@ -10,10 +10,10 @@ class RouteParamTest extends TestCase
 {
     public function testGetValueFromRequest()
     {
-        $paramName = "test_route";
-        $paramValue = "test_value";
+        $paramName = 'test_route';
+        $paramValue = 'test_value';
 
-        $request = new Request([], [], ["_route_params" => [$paramName => $paramValue]]);
+        $request = new Request([], [], ['_route_params' => [$paramName => $paramValue]]);
 
         $routeParam = new RouteParam($paramName);
 
@@ -22,9 +22,9 @@ class RouteParamTest extends TestCase
 
     public function testGetValueFromRequestWithMissingRouteParam()
     {
-        $paramName = "missing_route";
+        $paramName = 'missing_route';
 
-        $request = new Request([], [], ["_route_params" => []]);
+        $request = new Request([], [], ['_route_params' => []]);
 
         $routeParam = new RouteParam($paramName);
 
@@ -33,7 +33,7 @@ class RouteParamTest extends TestCase
 
     public function testGetValueFromRequestWithNoRouteParams()
     {
-        $paramName = "missing_route";
+        $paramName = 'missing_route';
 
         $request = new Request();
 
