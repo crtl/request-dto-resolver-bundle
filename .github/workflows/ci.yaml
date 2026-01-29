@@ -4,43 +4,99 @@ on:
     push:
     pull_request:
     schedule:
-        - cron: '0 0 1,16 * *'
+        - cron: "0 0 1,16 * *"
 
 jobs:
     test:
         runs-on: ubuntu-latest
         strategy:
+            fail-fast: false
             matrix:
                 php: [8.2, 8.3, 8.4]
-                symfony: [7.3.*, 7.4.*, 8.0.*]
+                symfony: ["7.3.*", "7.4.*", "8.0.*"]
+                deps: ["normal"]
                 include:
                     - php: 8.2
-                      composer: lowest
+                      symfony: "7.3.*"
+                      deps: "lowest"
+                exclude:
+                    - php: 8.2
+                      symfony: "8.0.*"
+                    - php: 8.3
+                      symfony: "8.0.*"
 
         steps:
             - uses: actions/checkout@v4
-            - uses: shivammathur/setup-php@v2
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
-            - run: composer install --no-interaction --prefer-dist
-            - run: vendor/bin/phpunit
+                  tools: composer:v2
+                  coverage: xdebug
+
+            - name: Get Composer cache dir
+              id: composercache
+              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            - name: Cache Composer
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.composercache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ matrix.symfony }}-${{ hashFiles('**/composer.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-composer-${{ matrix.php }}-${{ matrix.symfony }}-
+                      ${{ runner.os }}-composer-${{ matrix.php }}-
+
+            - name: Select Symfony version
+              run: |
+                  composer require \
+                    symfony/http-kernel:${{ matrix.symfony }} \
+                    symfony/dependency-injection:${{ matrix.symfony }} \
+                    symfony/validator:${{ matrix.symfony }} \
+                    --no-update
+
+            - name: Install deps (normal)
+              if: matrix.deps == 'normal'
+              run: composer update --no-interaction --prefer-dist --prefer-stable
+
+            - name: Install deps (lowest)
+              if: matrix.deps == 'lowest'
+              run: composer update --no-interaction --prefer-dist --prefer-lowest --prefer-stable
+
+            - name: Run tests
+              run: vendor/bin/phpunit
 
     phpstan:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+
             - uses: shivammathur/setup-php@v2
               with:
-                php-version: 8.4
-            - run: composer install
-            - run: vendor/bin/phpstan analyse
+                  php-version: 8.4
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Install deps
+              run: composer update --no-interaction --prefer-dist --prefer-stable
+
+            - name: Run PHPStan
+              run: vendor/bin/phpstan analyse
 
     php-cs-fixer:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+
             - uses: shivammathur/setup-php@v2
               with:
-                php-version: 8.4
-            - run: composer install --no-interaction --prefer-dist
-            - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+                  php-version: 8.4
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Install deps
+              run: composer update --no-interaction --prefer-dist --prefer-stable
+
+            - name: Run php-cs-fixer
+              run: vendor/bin/php-cs-fixer fix --dry-run --diff
