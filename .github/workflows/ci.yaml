@@ -1,0 +1,42 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+    schedule:
+        - cron: '0 0 1,16 * *'
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                php: [8.2, 8.3, 8.4]
+                symfony: [7.3.*, 7.4.*, 8.0.*]
+                include:
+                    - php: 8.2
+                      composer: lowest
+
+        steps:
+            - uses: actions/checkout@v4
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+            - run: composer install --prefer-dist --no-progress
+            - run: vendor/bin/phpunit
+
+    phpstan:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: shivammathur/setup-php@v2
+              with:
+                php-version: 8.4
+            - run: composer install
+            - run: vendor/bin/phpstan analyse
+
+    php-cs-fixer:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: vendor/bin/php-cs-fixer fix --dry-run --diff
