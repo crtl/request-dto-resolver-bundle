@@ -79,10 +79,10 @@ jobs:
                   coverage: none
 
             - name: Install deps
-              run: composer update --no-interaction --prefer-dist --prefer-stable
+              run: composer update --no-interaction
 
             - name: Run PHPStan
-              run: vendor/bin/phpstan analyse
+              run: composer run phpstan
 
     php-cs-fixer:
         runs-on: ubuntu-latest
