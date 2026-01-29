@@ -36,5 +36,10 @@
         "phpunit/phpunit": "^11.1",
         "friendsofphp/php-cs-fixer": "^v3.93.1",
         "jaschilz/php-coverage-badger": "^2.0"
+    },
+    "conflict": {
+        "symfony/http-kernel": ">=8.0",
+        "symfony/dependency-injection": ">=8.0",
+        "symfony/validator": ">=8.0"
     }
 }

@@ -22,7 +22,7 @@ jobs:
             - uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
-            - run: composer install --prefer-dist --no-progress
+            - run: composer install --no-interaction --prefer-dist
             - run: vendor/bin/phpunit
 
     phpstan:
