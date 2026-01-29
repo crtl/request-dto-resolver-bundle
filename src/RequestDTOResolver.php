@@ -23,7 +23,7 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    public const string DTO_INSTANCES_ATTRIBUTE_KEY = '_request_dto_instances';
+    public const DTO_INSTANCES_ATTRIBUTE_KEY = '_request_dto_instances';
 
     public function __construct(protected ValidatorInterface $validator)
     {
