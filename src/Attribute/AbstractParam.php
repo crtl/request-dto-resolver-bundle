@@ -58,13 +58,14 @@ abstract class AbstractParam
     /**
      * Returns parameter name of property in request, defaults to property name.
      */
-    public function getName(): ?string
+    public function getName(): string
     {
-        if (!$this->name && !$this->property) {
+        $name = $this->name ?? $this->property?->getName();
+        if (null === $name) {
             throw new \LogicException('Unable to determine name for attribute '.static::class.'. Make sure to call setProperty before getValueFromRequest.');
         }
 
-        return $this->name ?? $this->property?->getName();
+        return $name;
     }
 
     /**

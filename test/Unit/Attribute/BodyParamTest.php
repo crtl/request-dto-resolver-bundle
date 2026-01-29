@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class BodyParamTest extends TestCase
 {
-    public function testGetValueFromRequest()
+    public function testGetValueFromRequest(): void
     {
         $paramName = 'test_param';
         $paramValue = 'test_value';
@@ -20,7 +20,7 @@ class BodyParamTest extends TestCase
         $this->assertEquals($paramValue, $bodyParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingParam()
+    public function testGetValueFromRequestWithMissingParam(): void
     {
         $request = new Request();
         $bodyParam = new BodyParam('missing_param');

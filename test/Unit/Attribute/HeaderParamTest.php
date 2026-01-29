@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class HeaderParamTest extends TestCase
 {
-    public function testGetValueFromRequest()
+    public function testGetValueFromRequest(): void
     {
         $paramName = 'test_header';
         $paramValue = 'test_value';
@@ -20,7 +20,7 @@ class HeaderParamTest extends TestCase
         $this->assertEquals($paramValue, $headerParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingHeader()
+    public function testGetValueFromRequestWithMissingHeader(): void
     {
         $paramName = 'missing_header';
 

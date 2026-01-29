@@ -12,8 +12,16 @@ use Symfony\Component\HttpFoundation\Request;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 class FileParam extends AbstractParam
 {
+    /**
+     * @throws \UnexpectedValueException When FileBag::get() does not return null or `UploadedFile` instance
+     */
     public function getValueFromRequest(Request $request): ?UploadedFile
     {
-        return $request->files->get($this->getName());
+        $file = $request->files->get($this->getName());
+        if (!is_null($file) && !$file instanceof UploadedFile) {
+            throw new \UnexpectedValueException(sprintf('Expected %s to return an instance of %s but got %s instead.', get_class($request->files), UploadedFile::class, get_debug_type($file)));
+        }
+
+        return $file;
     }
 }

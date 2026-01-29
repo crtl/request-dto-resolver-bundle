@@ -11,11 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 class FileParamTest extends TestCase
 {
     /**
-     * @return void
-     *
      * @throws Exception
      */
-    public function testGetValueFromRequest()
+    public function testGetValueFromRequest(): void
     {
         $paramName = 'test_file';
         $uploadedFile = $this->createMock(UploadedFile::class);
@@ -27,7 +25,7 @@ class FileParamTest extends TestCase
         $this->assertSame($uploadedFile, $fileParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingFile()
+    public function testGetValueFromRequestWithMissingFile(): void
     {
         $paramName = 'missing_file';
 

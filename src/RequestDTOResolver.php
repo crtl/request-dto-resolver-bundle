@@ -23,7 +23,7 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    public const DTO_INSTANCES_ATTRIBUTE_KEY = '_request_dto_instances';
+    public const string DTO_INSTANCES_ATTRIBUTE_KEY = '_request_dto_instances';
 
     public function __construct(protected ValidatorInterface $validator)
     {
@@ -31,6 +31,8 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 
     /**
      * Creates class for arguments if supported, validates it and returns it. If validation fails an exception is thrown.
+     *
+     * @return iterable<object>
      *
      * @throws RequestValidationException
      * @throws \ReflectionException
@@ -57,9 +59,12 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
             return [];
         }
 
+        /** @var array<class-string, object> $currentAttributes */
+        $currentAttributes = $request->attributes->get(self::DTO_INSTANCES_ATTRIBUTE_KEY, []);
+
         // Store instance in request attributes to be validated later on kernel.controller_arguments event
         $request->attributes->set(self::DTO_INSTANCES_ATTRIBUTE_KEY, array_merge(
-            $request->attributes->get(self::DTO_INSTANCES_ATTRIBUTE_KEY, []),
+            $currentAttributes,
             [
                 get_class($object) => $object,
             ]
@@ -69,11 +74,11 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
     }
 
     /**
-     * @template T
+     * @template T of object
      *
-     * @param Request            $request         The request object
-     * @param \ReflectionClass   $reflection      Reflection class to create instance of
-     * @param AbstractParam|null $parentAttribute Optional parent attribute passed when creating nested objects
+     * @param Request             $request         The request object
+     * @param \ReflectionClass<T> $reflection      Reflection class to create instance of
+     * @param AbstractParam|null  $parentAttribute Optional parent attribute passed when creating nested objects
      *
      * @return T|null
      *
@@ -86,11 +91,16 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 
         // Create new class instance
         try {
+            /** @var T|null $instance */
             $instance = $reflection->hasMethod('__construct')
                 ? $reflection->newInstance($request)
                 : $reflection->newInstanceWithoutConstructor();
         } catch (\ReflectionException $e) {
-            $this->logger->error(sprintf('Unable to instantiate class %s: %s', $reflection->getName(), $e->getMessage()));
+            $this->logger?->error(sprintf(
+                'Unable to instantiate class %s: %s',
+                $reflection->getName(),
+                $e->getMessage()
+            ));
 
             return null;
         }
@@ -133,7 +143,11 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
     /**
      * Checks if $className is a class which has {@link RequestDTO} attribute and returns reflection class for said dto or false otherwise.
      *
-     * @param class-string $className
+     * @param class-string|string $className
+     *
+     * @return \ReflectionClass<object>|false
+     *
+     * @phpstan-assert-if-true class-string $className
      */
     protected function createRequestDtoReflection(string $className): \ReflectionClass|false
     {
@@ -151,8 +165,10 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 
     /**
      * Checks if type contains classname which has {@link RequestDTO} attribute.
+     *
+     * @return \ReflectionClass<object>|false
      */
-    protected function createReflectionForRequestDtoProperty(\ReflectionNamedType|\ReflectionUnionType|null $type): \ReflectionClass|false
+    protected function createReflectionForRequestDtoProperty(?\ReflectionType $type): \ReflectionClass|false
     {
         if (!$type) {
             return false;
@@ -160,14 +176,17 @@ class RequestDTOResolver implements ValueResolverInterface, LoggerAwareInterface
 
         if ($type instanceof \ReflectionNamedType) {
             $types = [$type];
-        } else {
+        } elseif ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
             $types = $type->getTypes();
+        } else {
+            $types = [];
         }
 
         // Remove nullable flags from types
         $types = array_map(fn ($t) => ltrim($t, '?'), $types);
 
         foreach ($types as $type) {
+            /** @var class-string|string $type */
             // Check if class is a request dto and return true if so
             if ($r = $this->createRequestDtoReflection($type)) {
                 return $r;

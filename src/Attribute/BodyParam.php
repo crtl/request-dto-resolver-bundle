@@ -3,7 +3,7 @@
 namespace Crtl\RequestDTOResolverBundle\Attribute;
 
 use Attribute;
-use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 class BodyParam extends AbstractNestedParam
 {
-    protected function getInputBag(Request $request): InputBag
+    protected function getInputBag(Request $request): ParameterBag
     {
         return $request->request;
     }

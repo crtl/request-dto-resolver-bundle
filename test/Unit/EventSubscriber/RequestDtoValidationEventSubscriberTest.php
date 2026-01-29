@@ -5,6 +5,7 @@ namespace Crtl\RequestDTOResolverBundle\Test\Unit\EventSubscriber;
 use Crtl\RequestDTOResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
 use Crtl\RequestDTOResolverBundle\RequestDTOResolver;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
@@ -18,7 +19,7 @@ final class RequestDtoValidationEventSubscriberTest extends TestCase
 {
     private RequestDtoValidationEventSubscriber $subscriber;
 
-    private ValidatorInterface $validatorMock;
+    private ValidatorInterface&MockObject $validatorMock;
 
     protected function setUp(): void
     {
@@ -74,14 +75,22 @@ final class RequestDtoValidationEventSubscriberTest extends TestCase
         ]);
 
         $violations = $this->createMock(ConstraintViolationListInterface::class);
-        $violations->method('count')->willReturn(0);
+        $violations
+            ->expects(self::once())
+            ->method('count')
+            ->willReturn(0)
+        ;
 
-        $this->validatorMock->method('validate')->with($testDto)->willReturn($violations);
+        $this->validatorMock
+            ->expects(self::once())
+            ->method('validate')
+            ->with($testDto)
+            ->willReturn($violations)
+        ;
 
         $event = $this->createTestEvent(HttpKernelInterface::MAIN_REQUEST, $request);
 
         $this->subscriber->onKernelControllerArguments($event);
-        self::expectNotToPerformAssertions();
     }
 
     private function createTestEvent(int $requestType = HttpKernelInterface::MAIN_REQUEST, ?Request $request = null): ControllerArgumentsEvent

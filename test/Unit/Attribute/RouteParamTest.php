@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class RouteParamTest extends TestCase
 {
-    public function testGetValueFromRequest()
+    public function testGetValueFromRequest(): void
     {
         $paramName = 'test_route';
         $paramValue = 'test_value';
@@ -20,7 +20,7 @@ class RouteParamTest extends TestCase
         $this->assertEquals($paramValue, $routeParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingRouteParam()
+    public function testGetValueFromRequestWithMissingRouteParam(): void
     {
         $paramName = 'missing_route';
 
@@ -31,7 +31,7 @@ class RouteParamTest extends TestCase
         $this->assertNull($routeParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithNoRouteParams()
+    public function testGetValueFromRequestWithNoRouteParams(): void
     {
         $paramName = 'missing_route';
 

@@ -2,7 +2,7 @@
 
 namespace Crtl\RequestDTOResolverBundle\Attribute;
 
-use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 abstract class AbstractNestedParam extends AbstractParam
 {
-    abstract protected function getInputBag(Request $request): InputBag;
+    abstract protected function getInputBag(Request $request): ParameterBag;
 
     public function getValueFromRequest(Request $request): mixed
     {
@@ -22,7 +22,7 @@ abstract class AbstractNestedParam extends AbstractParam
         $value = $data[$parentName ?? $name] ?? null;
 
         if ($parentName) {
-            return $value[$name] ?? null;
+            return is_array($value) && isset($value[$name]) ? $value[$name] : null;
         }
 
         return $value;

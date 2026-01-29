@@ -21,14 +21,14 @@ class TestParam extends AbstractParam
 
 class AbstractParamTest extends TestCase
 {
-    public function testGetNameWithExplicitName()
+    public function testGetNameWithExplicitName(): void
     {
         $param = new TestParam('testName');
 
         $this->assertEquals('testName', $param->getName());
     }
 
-    public function testGetNameWithPropertyName()
+    public function testGetNameWithPropertyName(): void
     {
         $param = new TestParam();
 
@@ -38,7 +38,7 @@ class AbstractParamTest extends TestCase
         $this->assertEquals('testProperty', $param->getName());
     }
 
-    public function testGetNameThrowsLogicException()
+    public function testGetNameThrowsLogicException(): void
     {
         $this->expectException(\LogicException::class);
 
@@ -47,7 +47,7 @@ class AbstractParamTest extends TestCase
         $param->getName();
     }
 
-    public function testSetProperty()
+    public function testSetProperty(): void
     {
         $param = new TestParam();
 
@@ -57,7 +57,7 @@ class AbstractParamTest extends TestCase
         $this->assertSame($property, $param->getProperty());
     }
 
-    public function testGetValueFromRequest()
+    public function testGetValueFromRequest(): void
     {
         $request = new Request([], ['param' => 'value']);
 

@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class QueryParamTest extends TestCase
 {
-    public function testGetValueFromRequest()
+    public function testGetValueFromRequest(): void
     {
         $paramName = 'test_query';
         $paramValue = 'test_value';
@@ -20,7 +20,7 @@ class QueryParamTest extends TestCase
         $this->assertEquals($paramValue, $queryParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingQueryParam()
+    public function testGetValueFromRequestWithMissingQueryParam(): void
     {
         $paramName = 'missing_query';
 

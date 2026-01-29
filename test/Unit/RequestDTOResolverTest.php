@@ -19,12 +19,12 @@
 
 /** @noinspection PhpUnhandledExceptionInspection */
 
-namespace Crtl\RequestDTOResolverBundle\Test;
+namespace Crtl\RequestDTOResolverBundle\Test\Unit;
 
 use Crtl\RequestDTOResolverBundle\Attribute;
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
 use Crtl\RequestDTOResolverBundle\RequestDTOResolver;
 use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -38,6 +38,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class TestDTO
 {
     #[Attribute\BodyParam]
+    // @phpstan-ignore missingType.property
     public $paramNoType;
 
     #[Attribute\BodyParam]
@@ -83,9 +84,9 @@ class NestedQueryDTO
 
 class RequestDTOResolverTest extends TestCase
 {
-    protected ValidatorInterface $validator;
+    protected ValidatorInterface&MockObject $validator;
 
-    protected LoggerInterface $logger;
+    protected LoggerInterface&MockObject $logger;
 
     protected RequestDTOResolver $resolver;
 
@@ -100,7 +101,7 @@ class RequestDTOResolverTest extends TestCase
         $this->resolver->setLogger($this->logger);
     }
 
-    public function testResolveReturnsEmptyArrayForInvalidCandidates()
+    public function testResolveReturnsEmptyArrayForInvalidCandidates(): void
     {
         $request = new Request();
 
@@ -138,12 +139,10 @@ class RequestDTOResolverTest extends TestCase
     }
 
     /**
-     * @return void
-     *
      * @throws Exception
      * @throws \ReflectionException
      */
-    public function testResolveReturnsNewInstance()
+    public function testResolveReturnsNewInstance(): void
     {
         $request = new Request(
             ['queryParam' => 'value'],
@@ -162,42 +161,44 @@ class RequestDTOResolverTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
+        // @phpstan-ignore argument.type
         $this->assertInstanceOf($argument->getType(), $result[0]);
     }
 
     /**
-     * @return void
-     *
      * @throws Exception
      * @throws \ReflectionException
      */
-    public function testResolvePassesRequestToConstructor()
+    public function testResolvePassesRequestToConstructor(): void
     {
         $request = new Request();
 
-        $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
+        $class = new #[Attribute\RequestDTO] class {
             public function __construct(public ?Request $request = null)
             {
             }
-        }), false, false, null);
+        };
 
-        $this->validator->method('validate')->willReturn($this->createMock(ConstraintViolationListInterface::class));
+        $argument = new ArgumentMetadata('test', get_class($class), false, false, null);
 
-        $result = $this->resolver->resolve($request, $argument);
+        $this->validator
+            ->method('validate')
+            ->willReturn($this->createMock(ConstraintViolationListInterface::class));
 
-        $this->assertIsArray($result);
+        $result = iterator_to_array($this->resolver->resolve($request, $argument));
+        /** @var class-string<object> $type */
+        $type = (string) $argument->getType();
         $this->assertCount(1, $result);
-        $this->assertInstanceOf($argument->getType(), $result[0]);
+        $this->assertInstanceOf($type, $result[0]);
+        // @phpstan-ignore property.notFound
         $this->assertSame($request, $result[0]->request);
     }
 
     /**
-     * @return void
-     *
      * @throws Exception
      * @throws \ReflectionException
      */
-    public function testResolveRegistersExceptionInRequestAttributes()
+    public function testResolveRegistersExceptionInRequestAttributes(): void
     {
         $request = new Request(
             ['queryParam' => 'value'],
@@ -220,7 +221,7 @@ class RequestDTOResolverTest extends TestCase
         self::assertRequestAttributesContainsDto(TestDTO::class, $request);
     }
 
-    public function testResolveEmptyRequestThrowsValidationException()
+    public function testResolveEmptyRequestThrowsValidationException(): void
     {
         $request = new Request();
 
@@ -236,7 +237,7 @@ class RequestDTOResolverTest extends TestCase
         self::assertRequestAttributesContainsDto(TestDTO::class, $request);
     }
 
-    public function testReturnsEmptyResultIfConstructorIsPrivate()
+    public function testReturnsEmptyResultIfConstructorIsPrivate(): void
     {
         $argument = new ArgumentMetadata('test', PrivateConstructorClass::class, false, false, null);
 
@@ -244,12 +245,12 @@ class RequestDTOResolverTest extends TestCase
         $this->assertCount(0, $result);
     }
 
-    public function testResolveNestedBodyParam()
+    public function testResolveNestedBodyParam(): void
     {
         $request = new Request([], ['nested' => ['innerBody' => 'value']]);
 
         $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
-            #[Attribute\BodyParam('nested'), Assert\Valid, Assert\Optional]
+            #[Attribute\BodyParam('nested'), Assert\Valid]
             public ?NestedBodyDTO $nested = null;
         }), false, false, null);
 
@@ -259,17 +260,19 @@ class RequestDTOResolverTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
+        // @phpstan-ignore argument.type
         $this->assertInstanceOf($argument->getType(), $result[0]);
+        // @phpstan-ignore property.notFound
         $this->assertInstanceOf(NestedBodyDTO::class, $result[0]->nested);
         $this->assertEquals('value', $result[0]->nested->innerBody);
     }
 
-    public function testResolveNestedBodyParamNull()
+    public function testResolveNestedBodyParamNull(): void
     {
         $request = new Request([], ['nested' => null]);
 
         $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
-            #[Attribute\BodyParam('nested'), Assert\Valid, Assert\Optional]
+            #[Attribute\BodyParam('nested'), Assert\Valid]
             public ?NestedBodyDTO $nested = null;
         }), false, false, null);
 
@@ -280,16 +283,18 @@ class RequestDTOResolverTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
+        // @phpstan-ignore argument.type
         $this->assertInstanceOf($argument->getType(), $result[0]);
+        // @phpstan-ignore property.notFound
         $this->assertNull($result[0]->nested);
     }
 
-    public function testResolveNestedQueryParam()
+    public function testResolveNestedQueryParam(): void
     {
         $request = new Request(['nested' => ['innerQuery' => 'value']]);
 
         $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
-            #[Attribute\QueryParam('nested'), Assert\Valid, Assert\Optional]
+            #[Attribute\QueryParam('nested'), Assert\Valid]
             public ?NestedQueryDTO $nested = null;
         }), false, false, null);
 
@@ -300,17 +305,19 @@ class RequestDTOResolverTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
+        // @phpstan-ignore argument.type
         $this->assertInstanceOf($argument->getType(), $result[0]);
+        // @phpstan-ignore property.notFound
         $this->assertInstanceOf(NestedQueryDTO::class, $result[0]->nested);
         $this->assertEquals('value', $result[0]->nested->innerQuery);
     }
 
-    public function testResolveNestedQueryParamNull()
+    public function testResolveNestedQueryParamNull(): void
     {
         $request = new Request(['nested' => null]);
 
         $argument = new ArgumentMetadata('test', get_class(new #[Attribute\RequestDTO] class {
-            #[Attribute\QueryParam('nested'), Assert\Valid, Assert\Optional]
+            #[Attribute\QueryParam('nested'), Assert\Valid]
             public ?NestedQueryDTO $nested = null;
         }), false, false, null);
 
@@ -320,7 +327,9 @@ class RequestDTOResolverTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
+        // @phpstan-ignore argument.type
         $this->assertInstanceOf($argument->getType(), $result[0]);
+        // @phpstan-ignore property.notFound
         $this->assertNull($result[0]->nested);
     }
 
@@ -332,17 +341,7 @@ class RequestDTOResolverTest extends TestCase
         self::assertIsArray($attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
         self::assertArrayHasKey($className, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
 
+        // @phpstan-ignore argument.type
         self::assertInstanceOf($className, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY][$className]);
-    }
-
-    private static function assertValidationExceptionRegisteredForClass(string $className, Request $request): void
-    {
-        $attrs = $request->attributes->all();
-
-        self::assertArrayHasKey(RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY, $attrs);
-        self::assertIsArray($attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
-        self::assertArrayHasKey($className, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY]);
-
-        self::assertInstanceOf(RequestValidationException::class, $attrs[RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY][$className]);
     }
 }
