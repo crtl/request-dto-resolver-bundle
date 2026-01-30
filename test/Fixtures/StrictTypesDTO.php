@@ -1,0 +1,59 @@
+<?php
+
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Crtl\RequestDTOResolverBundle\Test\Fixtures;
+
+use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
+use Symfony\Component\Validator\Constraints as Assert;
+
+#[RequestDto]
+final class StrictTypesDTO
+{
+    #[BodyParam]
+    #[Assert\NotBlank]
+    public string $string;
+
+    #[BodyParam]
+    public ?string $nullableString;
+
+    #[BodyParam]
+    #[Assert\NotBlank]
+    public int $int;
+
+    #[BodyParam]
+    public ?int $nullableInt;
+
+    #[BodyParam]
+    #[Assert\NotBlank]
+    public float $float;
+
+    #[BodyParam]
+    public ?float $nullableFloat;
+
+    #[BodyParam]
+    #[Assert\NotBlank]
+    public bool $bool;
+
+    #[BodyParam]
+    public ?bool $nullableBool;
+
+    /** @var mixed[] */
+    #[BodyParam]
+    #[Assert\NotBlank]
+    public array $array;
+
+    /** @var mixed[]|null */
+    #[BodyParam]
+    public ?array $nullableArray;
+}

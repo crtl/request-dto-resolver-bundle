@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Crtl\RequestDTOResolverBundle\Test\Unit\Exception;
 
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
@@ -8,7 +19,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
-class RequestValidationExceptionTest extends TestCase
+final class RequestValidationExceptionTest extends TestCase
 {
     protected ConstraintViolationListInterface&MockObject $violations;
 
@@ -23,27 +34,27 @@ class RequestValidationExceptionTest extends TestCase
         $this->violations = $this->createMock(ConstraintViolationListInterface::class);
     }
 
-    public function testExceptionMessage(): void
+    public function testGetMessageReturnsCorrectMessageWithClassName(): void
     {
         $exception = new RequestValidationException($this->object, $this->violations);
 
         $this->assertEquals('Error validating stdClass', $exception->getMessage());
     }
 
-    public function testGetObject(): void
+    public function testGetObjectReturnsTheValidatedObjectInstance(): void
     {
         $exception = new RequestValidationException($this->object, $this->violations);
 
         $this->assertSame($this->object, $exception->getObject());
     }
 
-    public function testGetViolations(): void
+    public function testGetViolationsReturnsTheConstraintViolationListInstance(): void
     {
         $exception = new RequestValidationException($this->object, $this->violations);
         $this->assertSame($this->violations, $exception->getViolations());
     }
 
-    public function testCreateMethod(): void
+    public function testCreateSuccessfullyInstantiatesRequestValidationExceptionViaStaticMethod(): void
     {
         $exception = RequestValidationException::create($this->object, $this->violations);
 

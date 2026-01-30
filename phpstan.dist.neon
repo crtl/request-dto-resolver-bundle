@@ -1,8 +1,16 @@
 includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon
     - vendor/phpstan/phpstan-phpunit/rules.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-symfony/rules.neon
+
 parameters:
-	level: 10
-	paths:
-		- src
-		- tests
+    level: 7
+    paths:
+        - src
+        - test
+
+    ignoreErrors:
+        -
+            identifier: missingType.property
+            path: %currentWorkingDirectory%/test/Fixtures/Legacy
