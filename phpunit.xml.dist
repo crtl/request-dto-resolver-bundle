@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         beStrictAboutCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="false"
+         failOnRisky="false"
+         failOnWarning="true"
+         bootstrap="test/bootstrap.php"
+>
+
+    <php>
+        <server name="KERNEL_CLASS" value="Crtl\RequestDTOResolverBundle\Test\TestKernel" />
+        <ini name="display_errors" value="Off"/> <!-- Set to Off to prevent recursive output loops -->
+        <ini name="error_reporting" value="-1"/>
+        <ini name="memory_limit" value="512M" />
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled" />
+        <ini name="xdebug.mode" value="off"/>
+    </php>
+
+    <testsuites>
+        <testsuite name="default">
+            <directory>test</directory>
+        </testsuite>
+    </testsuites>
+
+    <extensions>
+        <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension" />
+    </extensions>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
+</phpunit>

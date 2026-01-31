@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Crtl\RequestDTOResolverBundle\Exception;
 
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -7,7 +18,7 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 /**
  * Exception thrown when a request dto validation fails.
  */
-class RequestValidationException extends \InvalidArgumentException
+class RequestValidationException extends \Exception
 {
     /**
      * Constructor.

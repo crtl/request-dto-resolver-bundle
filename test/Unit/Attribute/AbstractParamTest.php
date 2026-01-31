@@ -1,17 +1,28 @@
 <?php
 
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\AbstractParam;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
-class TestClass
+final class TestClass
 {
     public string $testProperty;
 }
 
-class TestParam extends AbstractParam
+final class TestParam extends AbstractParam
 {
     public function getValueFromRequest(Request $request): mixed
     {
@@ -19,16 +30,16 @@ class TestParam extends AbstractParam
     }
 }
 
-class AbstractParamTest extends TestCase
+final class AbstractParamTest extends TestCase
 {
-    public function testGetNameWithExplicitName(): void
+    public function testGetNameReturnsExplicitNameIfSet(): void
     {
         $param = new TestParam('testName');
 
         $this->assertEquals('testName', $param->getName());
     }
 
-    public function testGetNameWithPropertyName(): void
+    public function testGetNameReturnsPropertyNameIfNoExplicitNameIsSet(): void
     {
         $param = new TestParam();
 
@@ -38,7 +49,7 @@ class AbstractParamTest extends TestCase
         $this->assertEquals('testProperty', $param->getName());
     }
 
-    public function testGetNameThrowsLogicException(): void
+    public function testGetNameThrowsLogicExceptionIfNeitherNameNorPropertyIsSet(): void
     {
         $this->expectException(\LogicException::class);
 
@@ -47,7 +58,7 @@ class AbstractParamTest extends TestCase
         $param->getName();
     }
 
-    public function testSetProperty(): void
+    public function testSetPropertyCorrectlySetsThePropertyInstance(): void
     {
         $param = new TestParam();
 
@@ -57,7 +68,7 @@ class AbstractParamTest extends TestCase
         $this->assertSame($property, $param->getProperty());
     }
 
-    public function testGetValueFromRequest(): void
+    public function testGetValueFromRequestReturnsValueFromRequestRequestBag(): void
     {
         $request = new Request([], ['param' => 'value']);
 

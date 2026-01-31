@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
@@ -8,12 +19,12 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
-class FileParamTest extends TestCase
+final class FileParamTest extends TestCase
 {
     /**
      * @throws Exception
      */
-    public function testGetValueFromRequest(): void
+    public function testGetValueFromRequestReturnsUploadedFileFromRequestFilesBag(): void
     {
         $paramName = 'test_file';
         $uploadedFile = $this->createMock(UploadedFile::class);
@@ -25,7 +36,7 @@ class FileParamTest extends TestCase
         $this->assertSame($uploadedFile, $fileParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingFile(): void
+    public function testGetValueFromRequestReturnsNullIfFileIsMissing(): void
     {
         $paramName = 'missing_file';
 

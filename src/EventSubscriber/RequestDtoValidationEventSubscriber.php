@@ -1,21 +1,34 @@
 <?php
 
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Crtl\RequestDTOResolverBundle\EventSubscriber;
 
 use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
-use Crtl\RequestDTOResolverBundle\RequestDTOResolver;
+use Crtl\RequestDTOResolverBundle\RequestDtoResolver;
+use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBagInterface;
+use Crtl\RequestDTOResolverBundle\Validator\RequestDtoValidator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * Event subscriber which validates DTOs that have been resolved before by {@link RequestDTOResolver}.
+ * Event subscriber which validates DTOs that have been resolved before by {@link RequestDtoResolver}.
  */
-class RequestDtoValidationEventSubscriber implements EventSubscriberInterface
+final class RequestDtoValidationEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        protected ValidatorInterface $validator,
+        private RequestDtoValidator $validator,
+        private DtoInstanceBagInterface $dtoInstanceBag,
     ) {
     }
 
@@ -26,20 +39,15 @@ class RequestDtoValidationEventSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @throws RequestValidationException
+     */
     public function onKernelControllerArguments(ControllerArgumentsEvent $event): void
     {
-        if (!$event->isMainRequest()) {
-            return;
-        }
-
         $request = $event->getRequest();
-        $dtoInstances = $request->attributes->get(RequestDTOResolver::DTO_INSTANCES_ATTRIBUTE_KEY, []);
 
-        assert(is_array($dtoInstances));
-
-        foreach ($dtoInstances as $instance) {
-            assert(is_object($instance));
-            $violations = $this->validator->validate($instance);
+        foreach ($this->dtoInstanceBag->getRegisteredInstances($request) as $instance) {
+            $violations = $this->validator->validateAndHydrate($instance, $request);
 
             if ($violations->count()) {
                 throw new RequestValidationException($instance, $violations);

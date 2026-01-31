@@ -1,8 +1,17 @@
 name: CI
 
 on:
-    push:
     pull_request:
+      branches:
+        - master
+        - develop
+        - "*.x"
+    push:
+      branches:
+        - master
+        - develop
+        - feature/refactor
+        - "*.x"
     schedule:
         - cron: "0 0 1,16 * *"
 
@@ -13,17 +22,17 @@ jobs:
             fail-fast: false
             matrix:
                 php: [8.2, 8.3, 8.4]
-                symfony: ["7.3.*", "7.4.*"] #, "8.0.*"]
+                symfony: ["7.3", "7.4"] #, "8.0.*"]
                 deps: ["normal"]
                 include:
                     - php: 8.2
-                      symfony: "7.3.*"
+                      symfony: "7.3"
                       deps: "lowest"
                 exclude:
                     - php: 8.2
-                      symfony: "8.0.*"
+                      symfony: "8.0"
                     - php: 8.3
-                      symfony: "8.0.*"
+                      symfony: "8.0"
 
         steps:
             - uses: actions/checkout@v4
@@ -64,8 +73,53 @@ jobs:
               if: matrix.deps == 'lowest'
               run: composer update --no-interaction --prefer-dist --prefer-lowest --prefer-stable
 
-            - name: Run tests
-              run: vendor/bin/phpunit
+            - name: PHPUnit Tests
+              run: |
+                vendor/bin/phpunit \
+                --configuration phpunit.xml.dist \
+                --log-junit=junit-${{ matrix.php }}-${{ matrix.symfony }}.xml \
+                --coverage-clover=coverage-${{ matrix.php }}-${{ matrix.symfony }}.xml \
+                $PHPUNIT_ARGS
+            - uses: actions/upload-artifact@v6
+              with:
+                name: phpunit-${{ matrix.php }}-${{ matrix.symfony }}-${{ matrix.deps }}
+                path: |
+                  coverage*.xml
+                  junit*.xml
+                if-no-files-found: error
+                retention-days: 2
+
+    codecov:
+      name: Codecov
+      runs-on: ubuntu-22.04
+
+      needs: test                         # <- fixed: wait for test matrix to finish
+      timeout-minutes: 15                 # increased timeout
+
+      # Avoid errors on push events; skip Dependabot if desired
+      if: github.actor != 'dependabot[bot]'
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 2
+
+        - name: Download artifacts (all test matrix artifacts)
+          uses: actions/download-artifact@v7
+          # by default will download all artifacts; optionally set `path:` to control location
+
+        - name: Upload test results to Codecov (JUnit)
+          uses: codecov/test-results-action@v1
+          env:
+            CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+        - name: Upload code coverage to Codecov
+          uses: codecov/codecov-action@v5
+          with:
+            fail_ci_if_error: true
+          env:
+            CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     phpstan:
         runs-on: ubuntu-latest

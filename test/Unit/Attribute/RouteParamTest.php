@@ -1,14 +1,25 @@
 <?php
 
+/*
+ * This file is part of a private project.
+ *
+ * Copyright 2026 Crtl
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDTOResolverBundle\Attribute\RouteParam;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
-class RouteParamTest extends TestCase
+final class RouteParamTest extends TestCase
 {
-    public function testGetValueFromRequest(): void
+    public function testGetValueFromRequestReturnsRouteParameterFromRequestAttributesBag(): void
     {
         $paramName = 'test_route';
         $paramValue = 'test_value';
@@ -20,7 +31,7 @@ class RouteParamTest extends TestCase
         $this->assertEquals($paramValue, $routeParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithMissingRouteParam(): void
+    public function testGetValueFromRequestReturnsNullIfRouteParameterIsMissing(): void
     {
         $paramName = 'missing_route';
 
@@ -31,7 +42,7 @@ class RouteParamTest extends TestCase
         $this->assertNull($routeParam->getValueFromRequest($request));
     }
 
-    public function testGetValueFromRequestWithNoRouteParams(): void
+    public function testGetValueFromRequestReturnsNullIfNoRouteParametersArePresent(): void
     {
         $paramName = 'missing_route';
 
