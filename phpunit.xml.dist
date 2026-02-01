@@ -16,7 +16,6 @@
         <ini name="display_errors" value="Off"/> <!-- Set to Off to prevent recursive output loops -->
         <ini name="error_reporting" value="-1"/>
         <ini name="memory_limit" value="512M" />
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled" />
         <ini name="xdebug.mode" value="off"/>
     </php>
 
@@ -25,10 +24,6 @@
             <directory>test</directory>
         </testsuite>
     </testsuites>
-
-    <extensions>
-        <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension" />
-    </extensions>
 
     <source>
         <include>
