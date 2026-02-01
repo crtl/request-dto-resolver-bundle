@@ -59,11 +59,12 @@ jobs:
 
             - name: Select Symfony version
               run: |
-                  composer require \
-                    symfony/http-kernel:${{ matrix.symfony }} \
-                    symfony/dependency-injection:${{ matrix.symfony }} \
-                    symfony/validator:${{ matrix.symfony }} \
-                    --no-update
+                composer require \
+                  symfony/http-kernel:${{ matrix.symfony }}.* \
+                  symfony/dependency-injection:${{ matrix.symfony }}.* \
+                  symfony/validator:${{ matrix.symfony }}.* \
+                  symfony/framework-bundle:${{ matrix.symfony }}.* \
+                  --no-update --no-interaction
 
             - name: Install deps (normal)
               if: matrix.deps == 'normal'
