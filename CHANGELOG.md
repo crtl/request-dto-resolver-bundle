@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.1...v2.0.2) (2026-02-01)
+
+
+### Miscellaneous Chores
+
+* **dependencies:** update symfony package constraints and ci workflow matrix ([#5](https://github.com/crtl/request-dto-resolver-bundle/issues/5)) ([6cc55e6](https://github.com/crtl/request-dto-resolver-bundle/commit/6cc55e676dfc139c4ad8db78927096296876d650))
+
 ## [2.0.1](https://github.com/crtl/request-dto-resolver-bundle/compare/0.0.3...v2.0.1) (2026-02-01)
 
 
