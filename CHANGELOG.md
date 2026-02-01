@@ -1,0 +1,19 @@
+# Changelog
+
+## [2.0.1](https://github.com/crtl/request-dto-resolver-bundle/compare/0.0.3...v2.0.1) (2026-02-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* The DTO lifecycle is now split between resolution and validation phases. DTO properties are no longer hydrated during the resolution phase but after the `kernel.controller_arguments` event.
+
+### Features
+
+* add phpstan and fix issues ([d447869](https://github.com/crtl/request-dto-resolver-bundle/commit/d4478695a6413be81122609429f36c4032bfb860))
+* complete rework to support type-safe request DTOs ([#3](https://github.com/crtl/request-dto-resolver-bundle/issues/3)) ([32069d0](https://github.com/crtl/request-dto-resolver-bundle/commit/32069d096144a200164377fcbec0740203a5638e))
+* Moves validation logic from value resolver into event subscriber to prevent validation of values before all arguments and security has been resolved completely. ([2a5b29b](https://github.com/crtl/request-dto-resolver-bundle/commit/2a5b29b0a805967d2663772881d0a5be3f0105d7))
+
+
+### Miscellaneous Chores
+
+* release 2.0.1 ([66be6fe](https://github.com/crtl/request-dto-resolver-bundle/commit/66be6fe693aa8b73d304ca712bb49ee1202a448f))
