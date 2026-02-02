@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\Reflection;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Reflection;
 
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadata;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadataFactory;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoParamMetadata;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoParamMetadataFactory;
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadata;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
@@ -63,7 +63,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $this->paramMetadataFactory->expects($this->exactly(2))
             ->method('getMetadataFor')
             ->willReturnCallback(function (\ReflectionProperty $prop) {
-                return new RequestDtoParamMetadata($prop->getDeclaringClass()->getName(), $prop->getName(), 'prop1' === $prop->getName());
+                return new RequestDtoParamMetadata($prop->getDeclaringClass()->getName(), $prop->getName(), 'mixed', 'prop1' === $prop->getName());
             });
 
         $metadata = $this->factory->getMetadataFor($className);

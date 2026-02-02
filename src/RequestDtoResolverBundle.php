@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle;
+namespace Crtl\RequestDtoResolverBundle;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -28,5 +28,11 @@ class RequestDtoResolverBundle extends AbstractBundle
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $container->import('../config/services.php');
+        $env = $builder->getParameter('kernel.environment');
+
+        // Test overrides should come last
+        if ('test' === $env) {
+            $container->import('../config/services_test.php');
+        }
     }
 }

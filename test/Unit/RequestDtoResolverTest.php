@@ -29,14 +29,14 @@ declare(strict_types=1);
 
 /** @noinspection PhpUnhandledExceptionInspection */
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit;
 
-use Crtl\RequestDTOResolverBundle\Attribute;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadata;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadataFactory;
-use Crtl\RequestDTOResolverBundle\RequestDtoResolver;
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Attribute;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

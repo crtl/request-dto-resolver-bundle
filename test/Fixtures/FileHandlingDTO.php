@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
-use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
 

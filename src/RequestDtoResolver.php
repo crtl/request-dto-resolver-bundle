@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle;
+namespace Crtl\RequestDtoResolverBundle;
 
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadataFactory;
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;

@@ -14,18 +14,14 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 
 #[RequestDto]
-final class NullableAndDefaultDTO
+class DtoWithNestedDtoArray
 {
+    /**
+     * @var NestedChildDTO[]
+     */
     #[BodyParam]
-    public ?string $nullableString = null;
-
-    #[BodyParam]
-    public string $withDefault = 'default value';
-
-    #[QueryParam]
-    public ?int $nullableInt = 10;
+    public array $children;
 }

@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
-use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;

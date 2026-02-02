@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Fixtures\Controller;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller;
 
-use Crtl\RequestDTOResolverBundle\Test\Fixtures\StrictTypesDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\StrictTypesDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 final class TestController

@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Reflection;
+namespace Crtl\RequestDtoResolverBundle\Reflection;
 
-use Crtl\RequestDTOResolverBundle\Attribute\AbstractParam;
+use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
 use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 

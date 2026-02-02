@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\EventSubscriber;
+namespace Crtl\RequestDtoResolverBundle\EventSubscriber;
 
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
+use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -44,12 +44,12 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * }
  * ```
  */
-class RequestValidationExceptionEventSubscriber implements EventSubscriberInterface
+final class RequestValidationExceptionEventSubscriber implements EventSubscriberInterface
 {
     public static function getSubscribedEvents(): array
     {
         return [
-            KernelEvents::EXCEPTION => ['onKernelException', -1024],
+            KernelEvents::EXCEPTION => ['onKernelException', -32],
         ];
     }
 
@@ -82,5 +82,6 @@ class RequestValidationExceptionEventSubscriber implements EventSubscriberInterf
 
         $response = new JsonResponse($data, Response::HTTP_BAD_REQUEST);
         $event->setResponse($response);
+        $event->stopPropagation();
     }
 }

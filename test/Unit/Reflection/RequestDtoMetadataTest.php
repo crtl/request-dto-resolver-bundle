@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\Reflection;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Reflection;
 
-use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
-use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadata;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoParamMetadata;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadata;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -31,8 +31,8 @@ final class RequestDtoMetadataTest extends TestCase
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', false),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'string', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'string', false),
             ],
             $validatorMetadata,
         );
@@ -47,8 +47,8 @@ final class RequestDtoMetadataTest extends TestCase
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
             ],
             $this->createMock(ClassMetadataInterface::class),
         );
@@ -120,8 +120,8 @@ final class RequestDtoMetadataTest extends TestCase
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
             ],
             $validatorMetadata,
         );
@@ -144,8 +144,8 @@ final class RequestDtoMetadataTest extends TestCase
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
             ],
             $this->createMock(ClassMetadataInterface::class),
         );
@@ -153,7 +153,7 @@ final class RequestDtoMetadataTest extends TestCase
         $property = $metadata->getPropertyMetadata('prop1')->getReflectionProperty();
 
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('Property Crtl\RequestDTOResolverBundle\Test\Unit\Reflection\DummyRequestDto::$prop1 is missing an AbstractParam attribute.');
+        $this->expectExceptionMessage('Property Crtl\RequestDtoResolverBundle\Test\Unit\Reflection\DummyRequestDto::$prop1 is missing an AbstractParam attribute.');
 
         $metadata->getAbstractParamAttributeFromProperty($property);
     }
@@ -163,7 +163,7 @@ final class RequestDtoMetadataTest extends TestCase
         $metadata = new RequestDtoMetadata(
             DtoWithMultipleAttributes::class,
             [
-                new RequestDtoParamMetadata(DtoWithMultipleAttributes::class, 'prop', false),
+                new RequestDtoParamMetadata(DtoWithMultipleAttributes::class, 'prop', 'string', false),
             ],
             $this->createMock(ClassMetadataInterface::class),
         );
@@ -172,7 +172,7 @@ final class RequestDtoMetadataTest extends TestCase
 
         set_error_handler(function ($errno, $errstr) {
             $this->assertEquals(E_USER_WARNING, $errno);
-            $this->assertStringContainsString('Property Crtl\RequestDTOResolverBundle\Test\Unit\Reflection\DtoWithMultipleAttributes::$prop has more than one AbstractParam attribute', $errstr);
+            $this->assertStringContainsString('Property Crtl\RequestDtoResolverBundle\Test\Unit\Reflection\DtoWithMultipleAttributes::$prop has more than one AbstractParam attribute', $errstr);
 
             return true;
         }, E_USER_WARNING);

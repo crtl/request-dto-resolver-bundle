@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit;
 
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBag;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBag;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

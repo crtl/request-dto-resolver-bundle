@@ -13,14 +13,20 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Crtl\RequestDTOResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadataFactory;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoParamMetadataFactory;
-use Crtl\RequestDTOResolverBundle\RequestDtoResolver;
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBag;
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
-use Crtl\RequestDTOResolverBundle\Validator\RequestDtoValidator;
+use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
+use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestValidationExceptionEventSubscriber;
+use Crtl\RequestDtoResolverBundle\PropertyInfo\PropertyInfoExtractorFactory;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadataFactory;
+use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBag;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Validator\GroupSequenceExtractor;
+use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -37,10 +43,37 @@ return static function (ContainerConfigurator $container): void {
 
     $services->alias(DtoInstanceBagInterface::class, DtoInstanceBag::class);
 
+    $services->set(GroupSequenceExtractor::class)
+        ->args([
+            '$groupProviderLocator' => service('service_container'),
+        ])
+        ->private();
+
+    $services->set(ReflectionExtractor::class)
+        ->private();
+
+    $services->set(PhpDocExtractor::class)
+        ->private();
+
+    $services->set(PropertyInfoExtractorFactory::class)
+        ->args([
+            '$reflectionExtractor' => service(ReflectionExtractor::class),
+            '$phpDocExtractor' => service(PhpDocExtractor::class),
+        ])
+    ;
+
+    // Bundle-specific PropertyInfo service (does NOT replace the app's global "property_info")
+    $services->set('crtl_request_dto_resolver_bundle.property_extractor', PropertyInfoExtractorInterface::class)
+        ->factory([
+            service(PropertyInfoExtractorFactory::class),
+            'create'
+        ]);
+
     $services->set(RequestDtoParamMetadataFactory::class)
         ->args([
             '$validator' => service('validator'),
             '$reflectionHelper' => service(DtoReflectionHelper::class),
+            '$propertyInfoExtractor' => service('crtl_request_dto_resolver_bundle.property_extractor'),
         ]);
 
     $services->set(RequestDtoMetadataFactory::class)
@@ -55,6 +88,7 @@ return static function (ContainerConfigurator $container): void {
         ->args([
             '$validator' => service('validator'),
             '$metadataFactory' => service(RequestDtoMetadataFactory::class),
+            '$groupSequenceExtractor' => service(GroupSequenceExtractor::class),
         ]);
 
     $services->set(RequestDtoResolver::class)
@@ -70,5 +104,8 @@ return static function (ContainerConfigurator $container): void {
             '$validator' => service(RequestDtoValidator::class),
             '$dtoInstanceBag' => service(DtoInstanceBagInterface::class),
         ])
+        ->tag('kernel.event_subscriber');
+
+    $services->set(RequestValidationExceptionEventSubscriber::class)
         ->tag('kernel.event_subscriber');
 };
