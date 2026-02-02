@@ -32,6 +32,9 @@ final class GroupSequenceProviderDTO implements GroupSequenceProviderInterface
     #[Assert\NotBlank(groups: ['First'])]
     public ?string $second = null;
 
+    /**
+     * @return string[]
+     */
     public function getGroupSequence(): array
     {
         $groups = [self::class];

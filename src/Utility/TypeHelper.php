@@ -37,13 +37,14 @@ final class TypeHelper
         $isNullable = false;
 
         // Unwrap "?T"
-        if ($type instanceof NullableType) {
+        if (class_exists(NullableType::class) && $type instanceof NullableType) {
             $isNullable = true;
             $type = $type->getWrappedType();
         }
 
         // Unwrap "T|null" (or bigger unions) by picking the first non-null type
         if ($type instanceof UnionType) {
+            /** @var Type $inner */
             foreach ($type->getTypes() as $inner) {
                 if ($inner->isNullable()) {
                     $isNullable = true;
@@ -87,6 +88,7 @@ final class TypeHelper
         // Scalars / object / resource / callable, etc.
         // TypeInfo exposes this as the "builtin type" concept.
         return [
+            // @phpstan-ignore method.nonObject
             'builtInType' => method_exists($type, 'getBuiltinType') ? $type->getBuiltinType() : null,
             'isNullable' => $isNullable,
             'isCollection' => false,

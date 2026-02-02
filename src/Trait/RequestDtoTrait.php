@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 trait RequestDtoTrait
 {
     public function __construct(
-        private readonly Request $request
+        private readonly ?Request $request = null
     ) {
     }
 
@@ -32,6 +32,9 @@ trait RequestDtoTrait
      */
     public function getValue(string $property): mixed
     {
+        if (null === $this->request) {
+            throw new \LogicException('Request must be set before calling getValue().');
+        }
         $reflectionClass = new \ReflectionClass($this);
         $reflectionProperty = $reflectionClass->getProperty($property);
 
