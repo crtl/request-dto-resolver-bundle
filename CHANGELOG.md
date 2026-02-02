@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.4](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.3...v2.0.4) (2026-02-02)
+
+
+### Bug Fixes
+
+* exception thrown by type-info when reading mixed properties with union types by changing packages in composer.lock ([#9](https://github.com/crtl/request-dto-resolver-bundle/issues/9)) ([520e887](https://github.com/crtl/request-dto-resolver-bundle/commit/520e88745809d0d07d52105e0f5456a3dcc1f97b))
+
 ## [2.0.3](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.2...v2.0.3) (2026-02-02)
 
 
