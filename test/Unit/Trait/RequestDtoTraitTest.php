@@ -27,24 +27,24 @@ class RequestDtoTraitTestDto
 {
     use RequestDtoTrait;
 
+    public ?string $noAttr;
+    #[QueryParam]
+    public ?string $queryAttr;
+    #[BodyParam]
+    public ?string $bodyAttr;
+    #[HeaderParam('X-Test-Header')]
+    public ?string $headerAttr;
+    #[RouteParam('id')]
+    public ?string $routeAttr;
+    #[FileParam]
+    public ?UploadedFile $fileAttr;
+
     public function __construct(
         ?Request $request = null,
-        public ?string $noAttr = null,
-        #[QueryParam]
-        public ?string $queryAttr = null,
-        #[BodyParam]
-        public ?string $bodyAttr = null,
-        #[HeaderParam('X-Test-Header')]
-        public ?string $headerAttr = null,
-        #[RouteParam('id')]
-        public ?string $routeAttr = null,
-        #[FileParam]
-        public ?UploadedFile $fileAttr = null,
     ) {
         $this->request = $request;
     }
 }
-
 final class RequestDtoTraitTest extends TestCase
 {
     public function testGetValueReturnsRequestBodyValueWhenNoAttributeIsPresent(): void
@@ -115,5 +115,14 @@ final class RequestDtoTraitTest extends TestCase
         $this->expectException(\ReflectionException::class);
 
         $dto->getValue('nonExistentProperty');
+    }
+
+    public function testGetValueReturnsPropertyValueIfInitialized(): void
+    {
+        $request = $this->createMock(Request::class);
+        $dto = new RequestDtoTraitTestDto($request);
+        $dto->noAttr = 'test';
+
+        $this->assertEquals('test', $dto->getValue('noAttr'));
     }
 }
