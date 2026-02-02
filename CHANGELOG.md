@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.5...v2.1.0) (2026-02-02)
+
+
+### Features
+
+* fallback to reading property from instance when initialized in RequestDtoTrait::getValue ([#13](https://github.com/crtl/request-dto-resolver-bundle/issues/13)) ([29ab207](https://github.com/crtl/request-dto-resolver-bundle/commit/29ab2072912f6b171966923dbfff11f7d8d44085))
+
 ## [2.0.5](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.4...v2.0.5) (2026-02-02)
 
 
