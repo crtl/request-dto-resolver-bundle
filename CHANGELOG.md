@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.5](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.4...v2.0.5) (2026-02-02)
+
+
+### Bug Fixes
+
+* make request in RequestDtoTrait constructor nullable to ensure b… ([#11](https://github.com/crtl/request-dto-resolver-bundle/issues/11)) ([c2daa34](https://github.com/crtl/request-dto-resolver-bundle/commit/c2daa34b4928a4eedc6ed5f9c2322514ea27ec77))
+
 ## [2.0.4](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.3...v2.0.4) (2026-02-02)
 
 
