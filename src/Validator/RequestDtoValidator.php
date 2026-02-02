@@ -132,7 +132,7 @@ class RequestDtoValidator
                                 $propertyViolations = $this->prefixViolations(
                                     $propertyViolations,
                                     // Append index to prefix only when in array mode
-                                    $isArray ? ($propertyName.".$i") : $propertyName,
+                                    $isArray ? ($propertyName."[$i]") : $propertyName,
                                 );
                                 $instance = null;
                             }
@@ -214,7 +214,14 @@ class RequestDtoValidator
     {
         $prefixedList = new ConstraintViolationList();
         foreach ($violations as $violation) {
-            $path = $prefix.($violation->getPropertyPath() ? '.'.$violation->getPropertyPath() : '');
+            $path = $prefix;
+            $violationPath = $violation->getPropertyPath();
+
+            if (!empty($violationPath) && !str_starts_with($violationPath, '[')) {
+                $violationPath = '.'.$violationPath;
+            }
+
+            $path .= $violationPath;
 
             $prefixedList->add(new ConstraintViolation(
                 $violation->getMessage(),

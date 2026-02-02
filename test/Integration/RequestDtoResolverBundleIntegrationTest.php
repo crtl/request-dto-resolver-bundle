@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\CollectionPathTestDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithGroupSequenceProvider;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithNestedDtoArray;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupSequenceProviderDTO;
@@ -130,6 +131,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         // e.g. \Crtl\RequestDtoResolverBundle\Exception\RequestDtoValidationException::class
 
         $response = $kernel->handle($request);
+        var_dump($response->getContent());
 
         $this->assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
     }
@@ -383,6 +385,41 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
             ['first' => 'validate_second', 'second' => null],
             400
         ];
+    }
+
+    public function testRequestDtoWithCollectionPathReturnsCorrectPropertyPathsInErrors(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        $request = Request::create(
+            uri: '/_test_group_sequence',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            content: json_encode([
+                'property' => [[]]
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(CollectionPathTestDto $dto): JsonResponse
+            {
+                return new JsonResponse(['fail']);
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+        var_dump($response->getContent());
+
+        $this->assertValidationErrorResponse($response, [
+            'property[0][key]',
+            'property[0][value]',
+        ]);
     }
 
     /**
