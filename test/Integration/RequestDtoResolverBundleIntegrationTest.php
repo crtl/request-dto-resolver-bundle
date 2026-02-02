@@ -227,6 +227,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
+        echo $response->getContent();
 
         self::assertSame(400, $response->getStatusCode());
     }

@@ -43,6 +43,9 @@ class ExampleDto
     public mixed $query;
 
     // Matches id
+    /**
+     * @var mixed|int
+     */
     #[RouteParam, Assert\NotBlank]
     public mixed $id;
 

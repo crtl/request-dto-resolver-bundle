@@ -16,6 +16,7 @@ namespace Crtl\RequestDtoResolverBundle\Reflection;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Crtl\RequestDtoResolverBundle\Utility\TypeHelper;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
+use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\Type\UnionType;
@@ -42,7 +43,16 @@ class RequestDtoParamMetadataFactory
 
         $propertyName = $property->getName();
 
-        $type = $this->propertyInfoExtractor->getType($className, $propertyName);
+        try {
+            $type = $this->propertyInfoExtractor->getType($className, $propertyName);
+        } catch (\InvalidArgumentException $e) {
+            // Compabitibility fix because somehow type-info does not support unions with mixed.
+            if ('Cannot create union with "mixed" standalone type.' !== $e->getMessage()) {
+                throw $e;
+            }
+            // Defensive fallback for invalid PHPDoc unions involving `mixed`
+            $type = Type::mixed();
+        }
 
         $typeDescription = TypeHelper::describe($type);
 
