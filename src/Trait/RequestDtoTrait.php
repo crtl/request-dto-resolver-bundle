@@ -32,11 +32,21 @@ trait RequestDtoTrait
      */
     public function getValue(string $property): mixed
     {
+        $reflectionClass = new \ReflectionClass($this);
+        $reflectionProperty = $reflectionClass->getProperty($property);
+
+        // Return property when initialized
+        if ($reflectionProperty->isInitialized($this)) {
+            $value = $reflectionProperty->getValue($this);
+
+            if ($value !== $reflectionProperty->getDefaultValue()) {
+                return $value;
+            }
+        }
+
         if (null === $this->request) {
             throw new \LogicException('Request must be set before calling getValue().');
         }
-        $reflectionClass = new \ReflectionClass($this);
-        $reflectionProperty = $reflectionClass->getProperty($property);
 
         $attrs = $reflectionProperty->getAttributes(AbstractParam::class, \ReflectionAttribute::IS_INSTANCEOF);
 
