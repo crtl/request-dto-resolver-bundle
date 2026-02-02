@@ -18,13 +18,21 @@ use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Test dto with mutiple files.
+ */
 #[RequestDto]
-class FileHandlingDTO
+class MultipleFilesDto
 {
-    #[FileParam]
-    #[Assert\NotNull]
-    public ?UploadedFile $file;
+    #[FileParam, Assert\File]
+    public ?UploadedFile $file_one;
 
-    #[FileParam('optional_file')]
-    public ?UploadedFile $optionalFile = null;
+    #[FileParam, Assert\File]
+    public $file_two; // @phpstan-ignore-line
+
+    /**
+     * @var UploadedFile|null
+     */
+    #[FileParam('file_3'), Assert\File]
+    public mixed $file3;
 }

@@ -14,24 +14,29 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[RequestDto]
-final class NestedParentDTO
+trait AllTypesBodyParamsTrait
 {
     #[BodyParam]
     #[Assert\NotBlank]
-    public ?string $parentName;
+    #[Assert\Type('string')]
+    public string $name;
 
-    #[BodyParam('child')]
-    public ?NestedChildDTO $child;
+    #[BodyParam]
+    #[Assert\NotBlank]
+    #[Assert\Type('int')]
+    #[Assert\Positive]
+    public int $age;
 
-    /** @var NestedChildDTO[]|null */
-    #[BodyParam('children')]
-    public ?array $children;
+    #[BodyParam]
+    #[Assert\NotBlank]
+    #[Assert\Type('bool')]
+    public bool $isMale;
 
-    /** @var array<string, mixed>|null */
-    #[BodyParam('child_map')]
-    public ?array $childMap;
+    #[BodyParam]
+    #[Assert\NotBlank]
+    #[Assert\Type('float')]
+    #[Assert\Positive]
+    public float $height;
 }

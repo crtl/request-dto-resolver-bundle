@@ -18,7 +18,7 @@ use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
-final class StrictTypesDTO
+final class StrictTypesDto
 {
     #[BodyParam]
     #[Assert\NotBlank]

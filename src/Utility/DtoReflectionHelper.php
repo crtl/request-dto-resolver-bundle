@@ -30,13 +30,13 @@ class DtoReflectionHelper
      *
      * @throws \ReflectionException
      */
-    public function getDtoParamProperties(\ReflectionClass $class): array
+    public function getAttributedProperties(\ReflectionClass $class): array
     {
         $properties = $class->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         $result = [];
         foreach ($properties as $property) {
-            if (!$property->isStatic() && $this->isReflectionDtoParam($property)) {
+            if (!$property->isStatic() && $this->isPropertyAttributed($property)) {
                 $result[] = $property;
             }
         }
@@ -54,16 +54,19 @@ class DtoReflectionHelper
      *
      * @return \ReflectionAttribute<T>[]
      */
-    public function getAttributes(\ReflectionProperty|\ReflectionClass $class, string $attributeClass): array
-    {
+    private function getAttributes(
+        \ReflectionProperty|\ReflectionClass $class,
+        string $attributeClass
+    ): array {
         return $class->getAttributes($attributeClass, \ReflectionAttribute::IS_INSTANCEOF);
     }
 
     /**
      * Returns the first reflection type that is a request dto or null if type is not a request dto.
      */
-    public function getDtoClassNameFromReflectionProperty(\ReflectionProperty $property): ?\ReflectionNamedType
-    {
+    public function getDtoClassNameFromReflectionProperty(
+        \ReflectionProperty $property
+    ): ?\ReflectionNamedType {
         $types = $property->getType();
 
         $normalizedTypes = match (true) {
@@ -105,7 +108,7 @@ class DtoReflectionHelper
     /**
      * Checks whether reflection property has {@link AbstractParam} attribute.
      */
-    public function isReflectionDtoParam(\ReflectionProperty $property): bool
+    public function isPropertyAttributed(\ReflectionProperty $property): bool
     {
         $attrs = $property->getAttributes(AbstractParam::class, \ReflectionAttribute::IS_INSTANCEOF);
 

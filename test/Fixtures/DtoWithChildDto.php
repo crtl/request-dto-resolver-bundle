@@ -14,15 +14,22 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 
+/**
+ * Dto containing nested child dtos as single child and array of children.
+ */
 #[RequestDto]
-final class UnionTypesDTO
+class DtoWithChildDto
 {
-    #[BodyParam]
-    public string|int|null $stringOrInt;
+    use AllTypesBodyParamsTrait;
 
-    #[QueryParam]
-    public float|int $floatOrInt;
+    #[BodyParam]
+    public ?NestedChildDTO $child;
+
+    /**
+     * @var NestedChildDTO[]
+     */
+    #[BodyParam]
+    public array $children;
 }

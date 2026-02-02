@@ -20,6 +20,15 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class QueryParamTest extends TestCase
 {
+    public function testHasTransformTypeReturnsTrueIfTransformTypeIsProvided(): void
+    {
+        $queryParam = new QueryParam('test', 'int');
+        self::assertTrue($queryParam->hasTransformType());
+
+        $queryParam = new QueryParam('test');
+        self::assertFalse($queryParam->hasTransformType());
+    }
+
     #[DataProvider('provideTransformCases')]
     public function testGetValueFromRequestCorrectlyTransformsValue(mixed $value, string|callable $transformType, mixed $expected): void
     {

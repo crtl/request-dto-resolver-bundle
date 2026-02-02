@@ -53,7 +53,9 @@ abstract class AbstractNestedParam extends AbstractParam
             $data = $this->getDataFromRequest($request);
         }
 
-        $value = $data[$name] ?? null;
+        $defaultValue = null; // $this->property?->getDefaultValue();
+
+        $value = $data[$name] ?? $defaultValue;
 
         $index = $this->getIndex();
 

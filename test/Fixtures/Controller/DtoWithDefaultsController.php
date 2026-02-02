@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\StrictTypesDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithDefaults;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-final class TestController
+class DtoWithDefaultsController
 {
-    public function __invoke(StrictTypesDto $dto): JsonResponse
+    public function __invoke(DtoWithDefaults $dto): JsonResponse
     {
         return new JsonResponse(get_object_vars($dto));
     }

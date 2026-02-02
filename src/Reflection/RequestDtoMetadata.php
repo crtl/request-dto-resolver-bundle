@@ -63,6 +63,14 @@ class RequestDtoMetadata
         }
     }
 
+    /**
+     * @return class-string
+     */
+    public function getClassName(): string
+    {
+        return $this->className;
+    }
+
     public function __serialize(): array
     {
         return [

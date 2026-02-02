@@ -89,7 +89,8 @@ return static function (ContainerConfigurator $container): void {
             '$validator' => service('validator'),
             '$metadataFactory' => service(RequestDtoMetadataFactory::class),
             '$groupSequenceExtractor' => service(GroupSequenceExtractor::class),
-        ]);
+        ])
+    ->public();
 
     $services->set(RequestDtoResolver::class)
         ->args([

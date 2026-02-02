@@ -15,15 +15,20 @@ namespace Crtl\RequestDtoResolverBundle\Validator;
 
 use Crtl\RequestDtoResolverBundle\Attribute\AbstractNestedParam;
 use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadata;
+use Crtl\RequestDtoResolverBundle\Utility\TypeErrorInfo;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\GroupSequence;
+use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Custom validator for request DTOs.
@@ -46,10 +51,28 @@ class RequestDtoValidator
     ];
 
     public function __construct(
-        private ValidatorInterface $validator,
-        private RequestDtoMetadataFactory $metadataFactory,
-        private ?GroupSequenceExtractor $groupSequenceExtractor = null,
+        private readonly ValidatorInterface $validator,
+        private readonly RequestDtoMetadataFactory $metadataFactory,
+        private readonly GroupSequenceExtractor $groupSequenceExtractor,
+        private readonly ?TranslatorInterface $translator = null,
     ) {
+    }
+
+    /**
+     * Validates the given DTO and hydrates it if validation is successfull.
+     *
+     * Main differences to default validator are:
+     * - DTO is not hydrated until the first validation group sequence passed successfully.
+     * - Propertie constraints are validated first
+     * - Class constraints are validated last after hydration.
+     * - TypeErrors thrown during hydration are converted to custom constraint violations.
+     *
+     * @param object                                    $dto
+     * @param array<string|string[]|GroupSequence>|null $groups
+     */
+    public function validateAndHydrate($dto, Request $request, ?array $groups = null): ConstraintViolationListInterface
+    {
+        return $this->validateAndHydrateRecursive($dto, $request, $groups);
     }
 
     /**
@@ -71,14 +94,11 @@ class RequestDtoValidator
 
         $groupSequence = $dtoMetadata->getGroupSequence() ?? $groups;
 
-        //        if (empty($groupSequence)) {
-        //            $groupSequence = [[Constraint::DEFAULT_GROUP, $className]];
-        //        }
-
         $violations = new ConstraintViolationList();
 
-        /** @var list<callable> $values Callables which apply values to dto, stored for hydration after validation */
-        $values = [];
+        /** @var array<array{value: mixed, name: string, reflectionProperty: \ReflectionProperty, metadata: RequestDtoParamMetadata}> $hydrationCache */
+        $hydrationCache = [];
+
         $hydrated = false;
 
         $newGroupSequence = $this->groupSequenceExtractor->getGroupSequence($dto, $groups, $dtoMetadata->getValidatorMetadata());
@@ -91,14 +111,24 @@ class RequestDtoValidator
             foreach ($dtoMetadata->getPropertyMetadataGenerator() as $propertyMetadata) {
                 $reflectionProperty = $propertyMetadata->getReflectionProperty();
                 $propertyName = $reflectionProperty->getName();
-
                 $attr = $dtoMetadata->getAbstractParamAttributeFromProperty($reflectionProperty, $parent);
 
                 $dtoType = $propertyMetadata->getNestedDtoClassName();
+                /** @var ConstraintViolationList|null $propertyViolations */
+                $propertyViolations = null;
+
+                if ($attr instanceof QueryParam) {
+                    $builtInType = strtolower($propertyMetadata->getBuiltinType());
+                    if (!$attr->hasTransformType() && QueryParam::isTransformType($builtInType)) {
+                        $attr->setTransformType($builtInType);
+                    }
+                }
+
+                $value = $attr->getValueFromRequest($request) ?? $propertyMetadata->getDefaultValue();
+
                 // When the property is a nested RequestDTO we can recurse into custom validation and skip regular validator validation, because:
                 // class can either be valid or invalid, of a nested dto is not valid it therefore can also not be assigned to the property.
                 // therefore no other validation is required.
-                $value = $attr->getValueFromRequest($request);
                 if (null !== $dtoType) {
                     if (null !== $value) {
                         $isArray = $propertyMetadata->isNestedDtoArray();
@@ -147,8 +177,6 @@ class RequestDtoValidator
                         } else {
                             $value = $isArray ? $resultArray : $resultArray[0];
                         }
-                    } else {
-                        $propertyViolations = new ConstraintViolationList();
                     }
                 } else {
                     // only validate constrained properties
@@ -160,19 +188,21 @@ class RequestDtoValidator
                             $groupToProcess,
                         );
                         $propertyViolations = $this->prefixViolations($propertyViolations, $propertyName);
-                    } else {
-                        $propertyViolations = new ConstraintViolationList();
                     }
                 }
 
-                $groupViolations->addAll(
-                    $propertyViolations,
-                );
-
-                // Set property after validation
-                if (0 === $propertyViolations->count()) {
+                if (null !== $propertyViolations && $propertyViolations->count() > 0) {
+                    $groupViolations->addAll(
+                        $propertyViolations,
+                    );
+                } else {
                     // Store callable to apply later when validation completed successfully
-                    $values[] = fn () => $reflectionProperty->setValue($dto, $value);
+                    $hydrationCache[] = [
+                        'value' => $value,
+                        'name' => $propertyName,
+                        'metadata' => $propertyMetadata,
+                        'reflectionProperty' => $reflectionProperty,
+                    ];
                 }
             }
 
@@ -184,7 +214,23 @@ class RequestDtoValidator
             // After the first sequence passed validation successfully we assume data is valid and hydrate the object
             if (false === $hydrated) {
                 $hydrated = true;
-                array_walk($values, fn (callable $value) => $value());
+                $hydrationViolations = new ConstraintViolationList();
+                foreach ($hydrationCache as $cacheItem) {
+                    try {
+                        $cacheItem['reflectionProperty']->setValue($dto, $cacheItem['value']);
+                    } catch (\TypeError $e) {
+                        if (TypeErrorInfo::ERROR_TYPE_PROPERTY !== TypeErrorInfo::getErrorTypeFromTypeError($e)) {
+                            throw $e;
+                        }
+                        $hydrationViolations->add(
+                            $this->createTypeErrorViolation($e, $dto, $cacheItem['metadata'], $cacheItem['value']),
+                        );
+                    }
+                }
+
+                if ($hydrationViolations->count() > 0) {
+                    return $hydrationViolations;
+                }
             }
 
             $classViolations = $this->validator
@@ -199,12 +245,37 @@ class RequestDtoValidator
     }
 
     /**
-     * @param object                                    $dto
-     * @param array<string|string[]|GroupSequence>|null $groups
+     * Creates custom constraint violation for type errors occuring when assigning values to types properties and the type is not matching.
+     *
+     * @param \TypeError              $error            The type error that was thrown
+     * @param object                  $object           The object being validated
+     * @param RequestDtoParamMetadata $propertyMetadata The metadata of the property being validated
      */
-    public function validateAndHydrate($dto, Request $request, ?array $groups = null): ConstraintViolationListInterface
-    {
-        return $this->validateAndHydrateRecursive($dto, $request, $groups);
+    private function createTypeErrorViolation(
+        \TypeError $error,
+        object $object,
+        RequestDtoParamMetadata $propertyMetadata,
+        mixed $invalidValue = null
+    ): ConstraintViolation {
+        $errorInfo = new TypeErrorInfo($error);
+
+        $template = 'This value should be of type {{ expected }}, {{ given }} given.';
+
+        $params = [
+            '{{ expected }}' => $errorInfo->expectedType,
+            '{{ given }}' => $errorInfo->actualType,
+        ];
+
+        $message = $this->translator?->trans($template, $params, 'validators') ?? $template;
+
+        return new ConstraintViolation(
+            $message,
+            $template,
+            $params,
+            $object,
+            $propertyMetadata->getPropertyName(),
+            $invalidValue,
+        );
     }
 
     /**

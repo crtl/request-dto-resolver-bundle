@@ -14,11 +14,14 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\CollectionPathTestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MixedDtoWithDefaultsController;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MultipleFilesTestController;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\StrictTypesDtoController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithGroupSequenceProvider;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithNestedDtoArray;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupSequenceProviderDTO;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy\ExampleDto;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\StrictTypesDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\TypeConflictingDto;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -58,12 +61,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );
 
-        $controller = new class {
-            public function __invoke(StrictTypesDTO $dto): JsonResponse
-            {
-                return new JsonResponse(get_object_vars($dto));
-            }
-        };
+        $controller = new StrictTypesDtoController();
 
         // no routing needed
         $request->attributes->set('_controller', $controller);
@@ -118,12 +116,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );
 
-        $controller = new class {
-            public function __invoke(StrictTypesDTO $dto): JsonResponse
-            {
-                return new JsonResponse(get_object_vars($dto));
-            }
-        };
+        $controller = new StrictTypesDtoController();
 
         $request->attributes->set('_controller', $controller);
 
@@ -133,7 +126,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $response = $kernel->handle($request);
         var_dump($response->getContent());
 
-        $this->assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
+        self::assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
     }
 
     public function testControllerIsCalledWithLegacyDto(): void
@@ -310,6 +303,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
+        echo $response->getContent();
 
         self::assertSame($expectedStatus, $response->getStatusCode());
 
@@ -319,7 +313,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
                 self::assertSame($value, $data[$key]);
             }
         } elseif (400 === $expectedStatus) {
-            $this->assertValidationErrorResponse($response);
+            self::assertValidationErrorResponse($response);
         }
     }
 
@@ -362,7 +356,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
                 self::assertSame($value, $data[$key]);
             }
         } elseif (400 === $expectedStatus) {
-            $this->assertValidationErrorResponse($response);
+            self::assertValidationErrorResponse($response);
         }
     }
 
@@ -416,10 +410,189 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $response = $kernel->handle($request);
         var_dump($response->getContent());
 
-        $this->assertValidationErrorResponse($response, [
+        self::assertValidationErrorResponse($response, [
             'property[0][key]',
             'property[0][value]',
         ]);
+    }
+
+    public function testMultipleFilesDtoIsHydratedCorrectlyFromRequest(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Create temporary files
+        $file1Path = tempnam(sys_get_temp_dir(), 'test1');
+        $file2Path = tempnam(sys_get_temp_dir(), 'test2');
+        $file3Path = tempnam(sys_get_temp_dir(), 'test3');
+
+        file_put_contents($file1Path, 'content1');
+        file_put_contents($file2Path, 'content2');
+        file_put_contents($file3Path, 'content3');
+
+        $file1 = new UploadedFile($file1Path, 'file1.txt', 'text/plain', null, true);
+        $file2 = new UploadedFile($file2Path, 'file2.txt', 'text/plain', null, true);
+        $file3 = new UploadedFile($file3Path, 'file3.txt', 'text/plain', null, true);
+
+        $request = Request::create(
+            uri: '/_test_files',
+            method: 'POST',
+        );
+
+        // Populate Request::$files (FileBag)
+        $request->files->set('file_one', $file1);
+        $request->files->set('file_two', $file2);
+        $request->files->set('file_3', $file3); // Maps to $file3 in DTO via #[FileParam("file_3")]
+
+        $controller = new MultipleFilesTestController();
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('file1.txt', $data['file_one']);
+        self::assertSame('file2.txt', $data['file_two']);
+        self::assertSame('file3.txt', $data['file3']);
+
+        // Cleanup
+        @unlink($file1Path);
+        @unlink($file2Path);
+        @unlink($file3Path);
+    }
+
+    public function testMixedDtoWithDefaultsIsHydratedCorrectlyAndRetainsDefaults(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        $query = [
+            'queryParamString' => 'custom-query-string',
+            'queryParamInt' => 100,
+            'queryParamFloat' => 1.23,
+            'queryParamBool' => '0', // bool as string in query
+            'queryParamArrayNueric' => ['q-custom'],
+            'queryParamArrayAssoc' => ['key_1' => 'qv1', 'key_2' => 'qv2'],
+        ];
+
+        $body = [
+            'bodyParamString' => 'custom-body-string',
+            'bodyParamInt' => 77,
+            'bodyParamFloat' => 1.23,
+            'bodyParamBool' => false,
+            'bodyParamArrayNueric' => ['custom', 'array'],
+            'bodyParamArrayAssoc' => ['key_1' => 'v1', 'key_2' => 'v2'],
+        ];
+
+        $request = Request::create(
+            uri: '/_test_mixed?'.http_build_query($query),
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_CUSTOM_HEADER' => 'custom-header-value',
+            ],
+            content: json_encode($body, JSON_THROW_ON_ERROR),
+        );
+        $request->headers->set('X-Custom-Header', 'custom-header-value');
+
+        $controller = new MixedDtoWithDefaultsController();
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        print_r($data);
+        self::assertSame(200, $response->getStatusCode());
+
+        // Provided values
+        self::assertSame('custom-query-string', $data['queryParamString']);
+        self::assertSame(100, $data['queryParamInt']);
+        self::assertSame(1.23, $data['queryParamFloat']);
+        self::assertFalse($data['queryParamBool']);
+        self::assertSame(['q-custom'], $data['queryParamArrayNueric']);
+        self::assertSame(['key_1' => 'qv1', 'key_2' => 'qv2'], $data['queryParamArrayAssoc']);
+
+        self::assertSame('custom-body-string', $data['bodyParamString']);
+        self::assertSame(77, $data['bodyParamInt']);
+        self::assertSame(1.23, $data['bodyParamFloat']);
+        self::assertFalse($data['bodyParamBool']);
+        self::assertSame(['custom', 'array'], $data['bodyParamArrayNueric']);
+        self::assertSame(['key_1' => 'v1', 'key_2' => 'v2'], $data['bodyParamArrayAssoc']);
+
+        self::assertSame('custom-header-value', $data['headerParamString']);
+    }
+
+    public function testMixedDtoWithDefaultsUsesDefaultsWhenMissingFromRequest(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Empty request
+        $request = Request::create(
+            uri: '/_test_mixed',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+            ],
+            content: json_encode([], JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new MixedDtoWithDefaultsController();
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('query-param-string-default', $data['queryParamString']);
+        self::assertSame(42, $data['queryParamInt']);
+        self::assertSame(3.14, $data['queryParamFloat']);
+        self::assertTrue($data['queryParamBool']);
+        self::assertSame(['default', 'array'], $data['queryParamArrayNueric']);
+        self::assertSame(['key_1' => 'value_1', 'key_2' => 'value_2'], $data['queryParamArrayAssoc']);
+
+        self::assertSame('body-param-string-default', $data['bodyParamString']);
+        self::assertSame(42, $data['bodyParamInt']);
+        self::assertSame(3.14, $data['bodyParamFloat']);
+        self::assertTrue($data['bodyParamBool']);
+        self::assertSame(['default', 'array'], $data['bodyParamArrayNueric']);
+        self::assertSame(['key_1' => 'value_1', 'key_2' => 'value_2'], $data['bodyParamArrayAssoc']);
+
+        self::assertSame('header-param-string-default', $data['headerParamString']);
+    }
+
+    public function testTypeConflictingDtoReturnsValidationErrorsWhenPropertyTypeMismatches(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Empty request
+        $request = Request::create(
+            uri: '/_test_mixed',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+            ],
+            content: json_encode([], JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(TypeConflictingDto $dto): JsonResponse
+            {
+                return new JsonResponse(get_object_vars($dto));
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(400, $response->getStatusCode());
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertValidationErrorResponse($response, ['arrayProperty', 'intProperty', 'floatProperty', 'boolProperty', 'stringProperty']);
     }
 
     /**
@@ -427,7 +600,7 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
      *
      * @throws \JsonException
      */
-    private function assertValidationErrorResponse(Response $response, array $fields = []): void
+    private static function assertValidationErrorResponse(Response $response, array $fields = []): void
     {
         $content = $response->getContent();
         self::assertEquals(400, $response->getStatusCode());
