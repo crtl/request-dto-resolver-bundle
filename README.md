@@ -33,7 +33,7 @@ Register the bundle in your Symfony application. Add the following to your `conf
 ```php
 return [
     // other bundles
-    Crtl\RequestDTOResolverBundle\CrtlRequestDTOResolverBundle::class => ["all" => true],
+    Crtl\RequestDtoResolverBundle\CrtlRequestDTOResolverBundle::class => ["all" => true],
 ];
 ```
 
@@ -47,12 +47,12 @@ Annotate the class with [`#[RequestDto]`](src/Attribute/RequestDto.php) and use 
 ```php
 namespace App\DTO;
 
-use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
-use Crtl\RequestDTOResolverBundle\Attribute\HeaderParam;
-use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RouteParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -83,7 +83,7 @@ class ExampleDTO
     public string $id;
     
     // Nested DTOs are supported for BodyParam and QueryParam
-    #[BodyParam("nested"), Assert\Valid]
+    #[BodyParam("nested")] // Dont use Assert\Valid on nested DTOs otherwise native validation is triggered
     public ?NestedRequestDTO $nestedBodyDto;
     
     // Optionally implement constructor which accepts request object
@@ -96,6 +96,9 @@ class ExampleDTO
 
 > **IMPORTANT: Strict Typing**<br/>
 > While strict types are supported, validation constraint mismatches can still lead to `TypeError` in production. Always ensure your constraints (e.g., `Assert\Type`, `Assert\NotBlank`) match your property types.
+
+> > **IMPORTANT: Nested DTOs**<br/>
+> Dont use any assertions on nested DTO properties as this will trigger the native validation fow eventually breaking hydration and triggering errors.
 
 ### DTO Lifecycle
 
@@ -126,18 +129,128 @@ class ExampleController extends AbstractController
 }
 ```
 
+### Using RequestDtoTrait
+
+The [`RequestDtoTrait`](src/Trait/RequestDtoTrait.php) provides a default constructor that accepts the `Request` object and a `getValue(string $property)` method. This method is useful for accessing request data before hydration, which can come in handy in group sequence providers.
+
+```php
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Trait\RequestDtoTrait;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+
+#[RequestDto]
+class MyDTO
+{
+    use RequestDtoTrait;
+
+    #[BodyParam]
+    public string $type;
+}
+```
+
+### Validation Group Sequences
+
+When using [Group Sequences](https://symfony.com/doc/current/validation/sequence_provider.html) to define conditional validation, you must be careful about how you access data.
+
+**IMPORTANT: Uninitialized Properties**
+
+Since hydration happens *after* validation, DTO properties are **uninitialized** when the group sequence is evaluated. Accessing them directly will throw an `Error`.
+
+To safely access request parameters in your group sequence logic, use `RequestDtoTrait::getValue()`:
+
+```php
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Trait\RequestDtoTrait;
+use Symfony\Component\Validator\Constraints\GroupSequence;
+use Symfony\Component\Validator\GroupSequenceProviderInterface;
+
+#[RequestDto]
+class MyDTO implements GroupSequenceProviderInterface
+{
+    use RequestDtoTrait;
+
+    #[BodyParam]
+    public string $type;
+
+    public function getGroupSequence(): array|GroupSequence
+    {
+        // Use getValue() instead of $this->type
+        $type = $this->getValue("type");
+
+        $groups = ["MyDTO"];
+        if ($type === "special") {
+            $groups[] = "Special";
+        }
+
+        return $groups;
+    }
+}
+```
+
+#### Using a Group Sequence Provider Service
+
+You can also use a service to provide the group sequence. This is useful if your validation logic depends on external services (e.g., a database or configuration).
+
+1. **Create the Provider Service**:
+
+```php
+namespace App\Validator;
+
+use App\DTO\MyDTO;
+use Symfony\Component\Validator\Constraints\GroupSequence;
+use Symfony\Component\Validator\GroupProviderInterface;
+
+class MyGroupSequenceProvider implements GroupProviderInterface
+{
+    public function getGroups(object $object): array|GroupSequence
+    {
+        assert($object instanceof MyDTO)
+    
+        $groups = ["MyDTO"];
+
+        // Use getValue() to safely access uninitialized properties
+        if ($object->getValue("type") === "special") {
+            $groups[] = "Special";
+        }
+
+        return $groups;
+    }
+}
+```
+
+2. **Configure the DTO**:
+
+```php
+use App\Validator\MyGroupSequenceProvider;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Trait\RequestDtoTrait;
+use Symfony\Component\Validator\Constraints as Assert;
+
+#[RequestDto]
+#[Assert\GroupSequenceProvider(provider: MyGroupSequenceProvider::class)]
+class MyDTO
+{
+    // Trait is important to access fields before validation
+    use RequestDtoTrait;
+    
+    // ...
+}
+```
+
+> **Note**: `getValue()` only works in **root DTOs**. It uses reflection to resolve data from the request, which cannot access parent data in nested contexts.
+
 ### Step 3: Handle Validation Errors
 
-When validation fails, a [`Crtl\RequestDTOResolverBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
+When validation fails, a [`Crtl\RequestDtoResolverBundle\Exception\RequestValidationException`](src/Exception/RequestValidationException.php) is thrown.
 
-The bundle registers a default exception subscriber ([`RequestValidationExceptionEventSubscriber`](src/EventSubscriber/RequestValidationExceptionEventSubscriber.php)) with a low priority of **-1024**. This ensures that validation exceptions are caught and converted into a `JsonResponse` with a `400 Bad Request` status code by default.
+The bundle registers a default exception subscriber ([`RequestValidationExceptionEventSubscriber`](src/EventSubscriber/RequestValidationExceptionEventSubscriber.php)) with a low priority of **-32**. This ensures that validation exceptions are caught and converted into a `JsonResponse` with a `400 Bad Request` status code by default.
 
 You can still provide your own listener if you need custom error formatting:
 
 ```php
 namespace App\EventListener;
 
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
+use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -148,7 +261,7 @@ class RequestValidationExceptionListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            // Use a priority > -1024 to override the default bundle subscriber
+            // Use a priority > -32 to override the default bundle subscriber
             KernelEvents::EXCEPTION => ["onKernelException", 0],
         ];
     }

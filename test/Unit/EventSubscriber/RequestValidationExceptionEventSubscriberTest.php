@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\EventSubscriber;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\EventSubscriber;
 
-use Crtl\RequestDTOResolverBundle\EventSubscriber\RequestValidationExceptionEventSubscriber;
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
+use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestValidationExceptionEventSubscriber;
+use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +38,7 @@ final class RequestValidationExceptionEventSubscriberTest extends TestCase
     {
         $subscribedEvents = RequestValidationExceptionEventSubscriber::getSubscribedEvents();
         self::assertArrayHasKey(KernelEvents::EXCEPTION, $subscribedEvents);
-        self::assertEquals(['onKernelException', -1024], $subscribedEvents[KernelEvents::EXCEPTION]);
+        self::assertEquals(['onKernelException', -32], $subscribedEvents[KernelEvents::EXCEPTION]);
     }
 
     public function testOnKernelExceptionSkipsSubRequests(): void

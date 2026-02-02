@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Reflection;
+namespace Crtl\RequestDtoResolverBundle\Reflection;
 
-use Crtl\RequestDTOResolverBundle\Attribute\AbstractParam;
+use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
+use Symfony\Component\TypeInfo\Type;
 
 class RequestDtoParamMetadata
 {
@@ -39,6 +40,26 @@ class RequestDtoParamMetadata
         private readonly string $propertyName,
 
         /**
+         * Name of the built-in type of the property.
+         * Name of the built-in type of the property.
+         *
+         * One of:
+         * - `"array"`
+         * - `"bool"`
+         * - `"callable"`
+         * - `"float"`
+         * - `"int"`
+         * - `"iterable"`
+         * - `"null"`
+         * - `"object"`
+         * - `"resource"`
+         * - `"string"`
+         *
+         * @var string
+         */
+        private readonly string $builtInType,
+
+        /**
          * Whether the property is constrained by validation.
          *
          * @var bool
@@ -51,12 +72,30 @@ class RequestDtoParamMetadata
          * @var class-string|null
          */
         private readonly ?string $nestedDtoClassName = null,
+
+        /**
+         * Whether the param is mapped to an array of DTOs.
+         *
+         * @var bool
+         */
+        private readonly bool $isNestedDtoArray = false,
+        private readonly bool $isNullable = false,
     ) {
+    }
+
+    public function getBuiltinType(): string
+    {
+        return $this->builtInType;
     }
 
     public function isConstrained(): bool
     {
         return $this->isConstrained;
+    }
+
+    public function isNestedDtoArray(): bool
+    {
+        return $this->isNestedDtoArray;
     }
 
     /**
@@ -78,6 +117,11 @@ class RequestDtoParamMetadata
     public function getPropertyName(): string
     {
         return $this->propertyName;
+    }
+
+    public function isNullable(): bool
+    {
+        return $this->isNullable;
     }
 
     /**
@@ -141,19 +185,33 @@ class RequestDtoParamMetadata
         return [
             'className' => $this->className,
             'propertyName' => $this->propertyName,
+            'builtInType' => $this->builtInType,
             'isConstrained' => $this->isConstrained,
             'nestedDtoClassName' => $this->nestedDtoClassName,
+            'isNestedDtoArray' => $this->isNestedDtoArray,
+            'isNullable' => $this->isNullable,
         ];
     }
 
     /**
-     * @param array{className: class-string, propertyName: string, isConstrained: bool, nestedDtoClassName: class-string|null} $data
+     * @param array{
+     *     className: class-string,
+     *     propertyName: string,
+     *     builtInType: string,
+     *     isConstrained: bool,
+     *     nestedDtoClassName: class-string|null,
+     *     isNestedDtoArray: bool,
+     *     isNullable: bool
+     * } $data
      */
     public function __unserialize(array $data): void
     {
         $this->className = $data['className'];
         $this->propertyName = $data['propertyName'];
+        $this->builtInType = $data['builtInType'];
         $this->isConstrained = $data['isConstrained'];
         $this->nestedDtoClassName = $data['nestedDtoClassName'];
+        $this->isNestedDtoArray = $data['isNestedDtoArray'];
+        $this->isNullable = $data['isNullable'];
     }
 }

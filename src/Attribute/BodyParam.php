@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Attribute;
+namespace Crtl\RequestDtoResolverBundle\Attribute;
 
 use Attribute;
 use Symfony\Component\HttpFoundation\ParameterBag;

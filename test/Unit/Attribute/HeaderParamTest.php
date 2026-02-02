@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
-use Crtl\RequestDTOResolverBundle\Attribute\HeaderParam;
+use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

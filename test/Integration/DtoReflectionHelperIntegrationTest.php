@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Integration;
+namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 
-use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
-use Crtl\RequestDTOResolverBundle\Test\Fixtures\AllParamTypesDTO;
-use Crtl\RequestDTOResolverBundle\Test\Fixtures\NestedChildDTO;
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\AllParamTypesDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\NestedChildDTO;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use PHPUnit\Framework\TestCase;
 
 final class DtoReflectionHelperIntegrationTest extends TestCase

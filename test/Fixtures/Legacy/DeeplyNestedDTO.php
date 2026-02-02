@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Fixtures\Legacy;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy;
 
-use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 
 #[RequestDto]
 final class DeeplyNestedDTO

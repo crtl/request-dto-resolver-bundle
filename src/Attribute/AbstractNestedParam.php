@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Attribute;
+namespace Crtl\RequestDtoResolverBundle\Attribute;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +21,19 @@ use Symfony\Component\HttpFoundation\Request;
  */
 abstract class AbstractNestedParam extends AbstractParam
 {
+    protected ?int $index = null;
+
     abstract protected function getInputBag(Request $request): ParameterBag;
+
+    public function setIndex(int $index): void
+    {
+        $this->index = $index;
+    }
+
+    public function getIndex(): ?int
+    {
+        return $this->index;
+    }
 
     /**
      * @return array<string, mixed>
@@ -33,15 +45,20 @@ abstract class AbstractNestedParam extends AbstractParam
 
     public function getValueFromRequest(Request $request): mixed
     {
-        $data = $this->getDataFromRequest($request);
-
         $name = $this->getName();
-        $parentName = $this->parent?->getName();
 
-        $value = $data[$parentName ?? $name] ?? null;
+        if ($this->parent) {
+            $data = $this->parent->getValueFromRequest($request);
+        } else {
+            $data = $this->getDataFromRequest($request);
+        }
 
-        if ($parentName) {
-            $value = is_array($value) && isset($value[$name]) ? $value[$name] : null;
+        $value = $data[$name] ?? null;
+
+        $index = $this->getIndex();
+
+        if (null !== $index) {
+            $value = is_array($value) && isset($value[$index]) ? $value[$index] : null;
         }
 
         return $value;

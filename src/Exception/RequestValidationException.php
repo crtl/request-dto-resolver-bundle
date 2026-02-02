@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Exception;
+namespace Crtl\RequestDtoResolverBundle\Exception;
 
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 

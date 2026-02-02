@@ -11,13 +11,15 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Validator;
+namespace Crtl\RequestDtoResolverBundle\Validator;
 
-use Crtl\RequestDTOResolverBundle\Attribute\AbstractParam;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadata;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Attribute\AbstractNestedParam;
+use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -31,14 +33,27 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class RequestDtoValidator
 {
+    public const TYPE_DEFAULTS = [
+        'int' => 0,
+        'string' => '',
+        'float' => 0.0,
+        'bool' => false,
+        'array' => [],
+        'object' => null,
+        'null' => null,
+        'mixed' => null,
+        'iterable' => [],
+    ];
+
     public function __construct(
         private ValidatorInterface $validator,
         private RequestDtoMetadataFactory $metadataFactory,
+        private ?GroupSequenceExtractor $groupSequenceExtractor = null,
     ) {
     }
 
     /**
-     * @param array<string|string[]|\Symfony\Component\Validator\Constraints\GroupSequence>|null $groups
+     * @param array<string|string[]|GroupSequence>|null $groups
      */
     private function validateAndHydrateRecursive(
         object $dto,
@@ -50,17 +65,25 @@ class RequestDtoValidator
         $className = get_class($dto);
         $dtoMetadata ??= $this->metadataFactory->getMetadataFor($className);
 
+        if (empty($groups)) {
+            $groups = [Constraint::DEFAULT_GROUP, $className];
+        }
+
         $groupSequence = $dtoMetadata->getGroupSequence() ?? $groups;
 
-        if (empty($groupSequence)) {
-            $groupSequence = [[Constraint::DEFAULT_GROUP, $className]];
-        }
+        //        if (empty($groupSequence)) {
+        //            $groupSequence = [[Constraint::DEFAULT_GROUP, $className]];
+        //        }
 
         $violations = new ConstraintViolationList();
 
         /** @var list<callable> $values Callables which apply values to dto, stored for hydration after validation */
         $values = [];
         $hydrated = false;
+
+        $newGroupSequence = $this->groupSequenceExtractor->getGroupSequence($dto, $groups, $dtoMetadata->getValidatorMetadata());
+
+        $groupSequence = $newGroupSequence instanceof GroupSequence ? $newGroupSequence->groups : $newGroupSequence;
 
         foreach ($groupSequence as $groupToProcess) {
             $groupViolations = new ConstraintViolationList();
@@ -72,30 +95,57 @@ class RequestDtoValidator
                 $attr = $dtoMetadata->getAbstractParamAttributeFromProperty($reflectionProperty, $parent);
 
                 $dtoType = $propertyMetadata->getNestedDtoClassName();
-
                 // When the property is a nested RequestDTO we can recurse into custom validation and skip regular validator validation, because:
                 // class can either be valid or invalid, of a nested dto is not valid it therefore can also not be assigned to the property.
                 // therefore no other validation is required.
                 $value = $attr->getValueFromRequest($request);
                 if (null !== $dtoType) {
                     if (null !== $value) {
+                        $isArray = $propertyMetadata->isNestedDtoArray();
+
                         $nestedClassName = $dtoType;
                         /** @var class-string<object> $nestedClassName */
                         $nestedMetadata = $this->metadataFactory->getMetadataFor($nestedClassName);
-                        $value = $nestedMetadata->newInstance($request);
 
-                        $propertyViolations = $this->validateAndHydrateRecursive(
-                            $value,
-                            $request,
-                            is_array($groupToProcess) ? $groupToProcess : [$groupToProcess],
-                            $attr,
-                            $nestedMetadata,
-                        );
+                        $valueArray = $isArray ? $value : [$value];
+
+                        $propertyViolations = new ConstraintViolationList();
+                        $resultArray = [];
+                        foreach ($valueArray as $i => $nestedValue) {
+                            $instance = $nestedMetadata->newInstance($request);
+
+                            $nestedAttr = clone $attr;
+                            if ($isArray && $nestedAttr instanceof AbstractNestedParam) {
+                                $nestedAttr->setIndex($i);
+                            }
+
+                            $nestedViolations = $this->validateAndHydrateRecursive(
+                                $instance,
+                                $request,
+                                is_array($groupToProcess) ? $groupToProcess : [$groupToProcess],
+                                $nestedAttr,
+                                $nestedMetadata,
+                            );
+
+                            // Reset invalid object
+                            if ($nestedViolations->count() > 0) {
+                                $propertyViolations = $this->prefixViolations(
+                                    $propertyViolations,
+                                    // Append index to prefix only when in array mode
+                                    $isArray ? ($propertyName.".$i") : $propertyName,
+                                );
+                                $instance = null;
+                            }
+
+                            $resultArray[] = $instance;
+                            $propertyViolations->addAll($nestedViolations);
+                        }
 
                         // Reset invalid object
                         if ($propertyViolations->count() > 0) {
-                            $propertyViolations = $this->prefixViolations($propertyViolations, $reflectionProperty->getName());
                             $value = null;
+                        } else {
+                            $value = $isArray ? $resultArray : $resultArray[0];
                         }
                     } else {
                         $propertyViolations = new ConstraintViolationList();
@@ -149,8 +199,8 @@ class RequestDtoValidator
     }
 
     /**
-     * @param object                                                                             $dto
-     * @param array<string|string[]|\Symfony\Component\Validator\Constraints\GroupSequence>|null $groups
+     * @param object                                    $dto
+     * @param array<string|string[]|GroupSequence>|null $groups
      */
     public function validateAndHydrate($dto, Request $request, ?array $groups = null): ConstraintViolationListInterface
     {

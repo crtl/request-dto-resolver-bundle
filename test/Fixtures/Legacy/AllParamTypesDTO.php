@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Fixtures\Legacy;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy;
 
-use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDTOResolverBundle\Attribute\FileParam;
-use Crtl\RequestDTOResolverBundle\Attribute\HeaderParam;
-use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
-use Crtl\RequestDTOResolverBundle\Attribute\RouteParam;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
 
 #[RequestDto]
 final class AllParamTypesDTO

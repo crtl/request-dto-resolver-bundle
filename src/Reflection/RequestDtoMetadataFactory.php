@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Reflection;
+namespace Crtl\RequestDtoResolverBundle\Reflection;
 
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

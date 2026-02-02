@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\Exception;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Exception;
 
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
+use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

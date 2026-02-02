@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\Attribute;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
-use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -37,5 +37,22 @@ final class BodyParamTest extends TestCase
         $bodyParam = new BodyParam('missing_param');
 
         $this->assertNull($bodyParam->getValueFromRequest($request));
+    }
+
+    public function testGetNestedArrayValue(): void
+    {
+        $bodyParam = new BodyParam('name');
+        $parent = new BodyParam('children');
+        $parent->setIndex(0);
+        $bodyParam->setParent($parent);
+
+        $request = new Request(request: [
+            'children' => [
+                ['name' => 'John Doe']
+            ]
+        ]);
+
+        $value = $bodyParam->getValueFromRequest($request);
+        self::assertSame('John Doe', $value);
     }
 }

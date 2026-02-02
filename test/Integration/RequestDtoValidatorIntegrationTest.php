@@ -11,17 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Integration;
+namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 
-use Crtl\RequestDTOResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDTOResolverBundle\Attribute\QueryParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoMetadataFactory;
-use Crtl\RequestDTOResolverBundle\Reflection\RequestDtoParamMetadataFactory;
-use Crtl\RequestDTOResolverBundle\Utility\DtoReflectionHelper;
-use Crtl\RequestDTOResolverBundle\Validator\RequestDtoValidator;
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\PropertyInfo\PropertyInfoExtractorFactory;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
+use Crtl\RequestDtoResolverBundle\Validator\GroupSequenceExtractor;
+use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validation;
@@ -135,10 +139,18 @@ final class RequestDtoValidatorIntegrationTest extends TestCase
             ->enableAttributeMapping()
             ->getValidator();
 
+        $extractorFactory = new PropertyInfoExtractorFactory(
+            new PhpDocExtractor(),
+            new ReflectionExtractor(),
+        );
+
+        $propertyInfoExtractor = $extractorFactory->create();
+
         $reflectionHelper = new DtoReflectionHelper();
-        $paramMetadataFactory = new RequestDtoParamMetadataFactory($innerValidator, $reflectionHelper);
+        $paramMetadataFactory = new RequestDtoParamMetadataFactory($innerValidator, $reflectionHelper, $propertyInfoExtractor);
         $metadataFactory = new RequestDtoMetadataFactory($innerValidator, $reflectionHelper, $paramMetadataFactory);
-        $this->validator = new RequestDtoValidator($innerValidator, $metadataFactory);
+        $groupSequenceExtractor = new GroupSequenceExtractor();
+        $this->validator = new RequestDtoValidator($innerValidator, $metadataFactory, $groupSequenceExtractor);
     }
 
     // @phpstan-ignore method.unused

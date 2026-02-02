@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Utility;
+namespace Crtl\RequestDtoResolverBundle\Utility;
 
-use Crtl\RequestDTOResolverBundle\Attribute\AbstractParam;
-use Crtl\RequestDTOResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 
 /**
  * @internal

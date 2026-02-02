@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\EventSubscriber;
+namespace Crtl\RequestDtoResolverBundle\EventSubscriber;
 
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
-use Crtl\RequestDTOResolverBundle\RequestDtoResolver;
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDTOResolverBundle\Validator\RequestDtoValidator;
+use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
+use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
+use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\KernelEvents;

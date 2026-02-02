@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Utility;
+namespace Crtl\RequestDtoResolverBundle\Utility;
 
 use Symfony\Component\HttpFoundation\Request;
 

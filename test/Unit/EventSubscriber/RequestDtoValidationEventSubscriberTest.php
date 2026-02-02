@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test\Unit\EventSubscriber;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\EventSubscriber;
 
-use Crtl\RequestDTOResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
-use Crtl\RequestDTOResolverBundle\Exception\RequestValidationException;
-use Crtl\RequestDTOResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDTOResolverBundle\Validator\RequestDtoValidator;
+use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
+use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
+use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
+use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;

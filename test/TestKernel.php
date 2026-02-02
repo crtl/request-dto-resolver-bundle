@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Test;
+namespace Crtl\RequestDtoResolverBundle\Test;
 
-use Crtl\RequestDTOResolverBundle\RequestDtoResolverBundle;
+use Crtl\RequestDtoResolverBundle\RequestDtoResolverBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel;

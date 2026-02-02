@@ -14,18 +14,20 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupProvider\TestGroupProvider;
+use Crtl\RequestDtoResolverBundle\Trait\RequestDtoTrait;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
-final class NullableAndDefaultDTO
+#[Assert\GroupSequenceProvider(provider: TestGroupProvider::class)]
+class DtoWithGroupSequenceProvider
 {
+    use RequestDtoTrait;
     #[BodyParam]
-    public ?string $nullableString = null;
+    public ?string $first = null;
 
     #[BodyParam]
-    public string $withDefault = 'default value';
-
-    #[QueryParam]
-    public ?int $nullableInt = 10;
+    #[Assert\NotBlank(groups: ['First'])]
+    public ?string $second = null;
 }

@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDTOResolverBundle\Attribute;
+namespace Crtl\RequestDtoResolverBundle\Attribute;
 
-use Crtl\RequestDTOResolverBundle\RequestDtoResolver;
+use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
 
 /**
  * Marks a class as request DTO which will be resolved and validated
