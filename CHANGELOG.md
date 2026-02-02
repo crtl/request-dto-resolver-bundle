@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.3](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.2...v2.0.3) (2026-02-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* Namespace renamed to `Crtl\RequestDtoResolverBundle` and property info extractor configuration updated.
+
+### Features
+
+* extend DTO resolver/validation with group sequence providers and nested DTO arrays ([#7](https://github.com/crtl/request-dto-resolver-bundle/issues/7)) ([3d9741b](https://github.com/crtl/request-dto-resolver-bundle/commit/3d9741b72ddce24714c6c1513fd09d7e16fcb3ab))
+
+
+### Miscellaneous Chores
+
+* release 2.0.3 ([a8ec38d](https://github.com/crtl/request-dto-resolver-bundle/commit/a8ec38dea4de6c38e207106d091d4351e528b6c4))
+
 ## [2.0.2](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.0.1...v2.0.2) (2026-02-01)
 
 
