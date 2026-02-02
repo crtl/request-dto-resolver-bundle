@@ -106,8 +106,6 @@ class RequestDtoMetadata
      * Returns reflection class of request dto.
      *
      * @return \ReflectionClass<object>
-     *
-     * @throws \ReflectionException
      */
     public function getReflectionClass(): \ReflectionClass
     {
