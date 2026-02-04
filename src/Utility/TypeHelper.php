@@ -88,7 +88,6 @@ final class TypeHelper
         // Scalars / object / resource / callable, etc.
         // TypeInfo exposes this as the "builtin type" concept.
         return [
-            // @phpstan-ignore method.nonObject
             'builtInType' => method_exists($type, 'getBuiltinType') ? $type->getBuiltinType() : null,
             'isNullable' => $isNullable,
             'isCollection' => false,

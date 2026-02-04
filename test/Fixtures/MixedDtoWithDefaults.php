@@ -26,35 +26,36 @@ use Symfony\Component\Validator\Constraints as Assert;
 class MixedDtoWithDefaults
 {
     /**
-     * @var mixed|string
+     * @var string
      */
     #[QueryParam]
     #[Assert\NotBlank]
     #[Assert\Type('string')]
     public mixed $queryParamString = 'query-param-string-default';
+
     /**
-     * @var mixed|int
+     * @var int
      */
-    #[QueryParam()]
+    #[QueryParam]
     #[Assert\NotBlank]
     #[Assert\Type('int')]
     public mixed $queryParamInt = 42;
     /**
-     * @var mixed|float
+     * @var float
      */
     #[QueryParam]
     #[Assert\NotBlank]
     #[Assert\Type('float')]
     public mixed $queryParamFloat = 3.14;
     /**
-     * @var mixed|bool
+     * @var bool
      */
     #[QueryParam(transformType: 'bool')]
     #[Assert\Type('bool')]
     public mixed $queryParamBool = true;
 
     /**
-     * @var mixed|string[]
+     * @var string[]
      */
     #[QueryParam]
     #[Assert\NotBlank]
@@ -65,7 +66,7 @@ class MixedDtoWithDefaults
     public mixed $queryParamArrayNueric = ['default', 'array'];
 
     /**
-     * @var mixed|array<string, string>
+     * @var array<string, string>
      */
     #[QueryParam]
     #[Assert\NotBlank]
@@ -86,35 +87,35 @@ class MixedDtoWithDefaults
     public mixed $queryParamArrayAssoc = ['key_1' => 'value_1', 'key_2' => 'value_2'];
 
     /**
-     * @var mixed|string
+     * @var string
      */
     #[BodyParam]
     #[Assert\NotBlank]
     #[Assert\Type('string')]
     public mixed $bodyParamString = 'body-param-string-default';
     /**
-     * @var mixed|int
+     * @var int
      */
     #[BodyParam]
     #[Assert\NotBlank]
     #[Assert\Type('int')]
     public mixed $bodyParamInt = 42;
     /**
-     * @var mixed|float
+     * @var float
      */
     #[BodyParam]
     #[Assert\NotBlank]
     #[Assert\Type('float')]
     public mixed $bodyParamFloat = 3.14;
     /**
-     * @var mixed|bool
+     * @var bool
      */
     #[BodyParam]
     #[Assert\Type('bool')]
     public mixed $bodyParamBool = true;
 
     /**
-     * @var mixed|string[]
+     * @var string[]
      */
     #[BodyParam]
     #[Assert\NotBlank]
@@ -125,7 +126,7 @@ class MixedDtoWithDefaults
     public mixed $bodyParamArrayNueric = ['default', 'array'];
 
     /**
-     * @var mixed|array<string, string>
+     * @var array<string, string>
      */
     #[BodyParam]
     #[Assert\NotBlank]
@@ -146,7 +147,7 @@ class MixedDtoWithDefaults
     public mixed $bodyParamArrayAssoc = ['key_1' => 'value_1', 'key_2' => 'value_2'];
 
     /**
-     * @var mixed|string
+     * @var string
      */
     #[HeaderParam('X-Custom-Header')]
     #[Assert\NotBlank]
