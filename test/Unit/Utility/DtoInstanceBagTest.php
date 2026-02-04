@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Unit;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Utility;
 
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBag;
 use PHPUnit\Framework\TestCase;

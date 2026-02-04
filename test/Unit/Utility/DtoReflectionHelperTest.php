@@ -11,36 +11,26 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Integration;
+namespace Crtl\RequestDtoResolverBundle\Test\Unit\Utility;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\AllParamTypesDTO;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\NestedChildDTO;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use PHPUnit\Framework\TestCase;
 
-final class DtoReflectionHelperIntegrationTest extends TestCase
+final class DtoReflectionHelperTest extends TestCase
 {
     private DtoReflectionHelper $helper;
 
     protected function setUp(): void
     {
         $this->helper = new DtoReflectionHelper();
-    }
-
-    public function testGetAttributes(): void
-    {
-        /** @var \ReflectionClass<object> $reflectionClass */
-        $reflectionClass = new \ReflectionClass(AllParamTypesDTO::class);
-        $attributes = $this->helper->getAttributes($reflectionClass, RequestDto::class);
-        $this->assertCount(1, $attributes);
-        $this->assertEquals(RequestDto::class, $attributes[0]->getName());
-
-        $reflectionProperty = $reflectionClass->getProperty('body');
-        $attributes = $this->helper->getAttributes($reflectionProperty, BodyParam::class);
-        $this->assertCount(1, $attributes);
-        $this->assertEquals(BodyParam::class, $attributes[0]->getName());
     }
 
     public function testGetDtoClassNameFromReflectionProperty(): void
@@ -91,6 +81,60 @@ final class DtoReflectionHelperIntegrationTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
         $this->helper->getDtoClassNameFromReflectionProperty($intersectionProperty);
+    }
+
+    public function testGetAttributedProperties(): void
+    {
+        $class = new class {
+            #[BodyParam]
+            public string $someParam;
+
+            #[FileParam]
+            public mixed $file;
+            #[HeaderParam]
+            public string $contentType;
+
+            #[QueryParam]
+            public int $age;
+
+            #[RouteParam]
+            public string $id;
+
+            public mixed $noAttribute;
+            public mixed $noAttribute2;
+        };
+
+        $properties = $this->helper->getAttributedProperties(new \ReflectionClass($class));
+        $names = array_map(fn (\ReflectionProperty $property) => $property->getName(), $properties);
+        self::assertCount(5, $properties);
+        self::assertContains('someParam', $names);
+        self::assertContains('file', $names);
+        self::assertContains('contentType', $names);
+        self::assertContains('age', $names);
+        self::assertContains('id', $names);
+        self::assertNotContains('noAttribute', $names);
+    }
+
+    public function testIsPropertyAttributed(): void
+    {
+        $class = new class {
+            #[BodyParam]
+            public string $attributed;
+
+            public string $notAttributed;
+        };
+
+        $reflectionClass = new \ReflectionClass($class);
+        $attributed = $reflectionClass->getProperty('attributed');
+        $notAttributed = $reflectionClass->getProperty('notAttributed');
+
+        self::assertTrue(
+            $this->helper->isPropertyAttributed($attributed),
+        );
+
+        self::assertFalse(
+            $this->helper->isPropertyAttributed($notAttributed),
+        );
     }
 
     public function testIsRequestDto(): void

@@ -44,7 +44,7 @@ class ExampleDto
 
     // Matches id
     /**
-     * @var mixed|int
+     * @var int
      */
     #[RouteParam, Assert\NotBlank]
     public mixed $id;

@@ -14,17 +14,22 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 
+/**
+ * 3 layer deep nested dto.
+ */
 #[RequestDto]
-final class ArrayParamsDTO
+class DeepNestedDto
 {
-    /** @var string[]|null */
-    #[BodyParam]
-    public ?array $tags;
+    use AllTypesBodyParamsTrait;
 
-    /** @var array<string, mixed>|null */
-    #[QueryParam]
-    public ?array $filters;
+    #[BodyParam]
+    public ?DtoWithChildDto $child;
+
+    /**
+     * @var DtoWithChildDto[]
+     */
+    #[BodyParam]
+    public array $children;
 }

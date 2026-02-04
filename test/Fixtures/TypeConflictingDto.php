@@ -14,18 +14,26 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 
+/**
+ * Dto with strict typed properties but not equivalent validation attributes to ensure data is correct.
+ */
 #[RequestDto]
-final class NullableAndDefaultDTO
+class TypeConflictingDto
 {
     #[BodyParam]
-    public ?string $nullableString = null;
+    public int $intProperty;
 
     #[BodyParam]
-    public string $withDefault = 'default value';
+    public int $floatProperty;
 
-    #[QueryParam]
-    public ?int $nullableInt = 10;
+    #[BodyParam]
+    public string $stringProperty;
+
+    #[BodyParam]
+    public bool $boolProperty;
+
+    #[BodyParam]
+    public array $arrayProperty; // @phpstan-ignore-line
 }

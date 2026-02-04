@@ -3,14 +3,9 @@ name: CI
 on:
     pull_request:
       branches:
-        - master
-        - develop
         - "*.x"
     push:
       branches:
-        - master
-        - develop
-        - feature/refactor
         - "*.x"
     schedule:
         - cron: "0 0 1,16 * *"
@@ -57,8 +52,10 @@ jobs:
               run: |
                 composer require \
                   symfony/http-kernel:${{ matrix.symfony }}.* \
-                  symfony/dependency-injection:${{ matrix.symfony }}.* \
                   symfony/validator:${{ matrix.symfony }}.* \
+                  symfony/dependency-injection:${{ matrix.symfony }}.* \
+                  symfony/property-info:${{ matrix.symfony }}.* \
+                  symfony/cache:${{ matrix.symfony }}.* \
                   symfony/framework-bundle:${{ matrix.symfony }}.* \
                   --no-update --no-interaction
 

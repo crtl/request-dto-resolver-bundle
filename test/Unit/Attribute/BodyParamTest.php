@@ -55,4 +55,17 @@ final class BodyParamTest extends TestCase
         $value = $bodyParam->getValueFromRequest($request);
         self::assertSame('John Doe', $value);
     }
+
+    public function testReadsValueFromJsonRequest(): void
+    {
+        $request = new Request(
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode(['name' => 'John Doe'], flags: JSON_THROW_ON_ERROR),
+        );
+
+        $bodyParam = new BodyParam('name');
+        $value = $bodyParam->getValueFromRequest($request);
+
+        self::assertSame('John Doe', $value);
+    }
 }

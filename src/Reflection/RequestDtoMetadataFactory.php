@@ -46,7 +46,7 @@ class RequestDtoMetadataFactory
 
         assert($validatorMetadata instanceof ClassMetadataInterface, 'Validator metadata for '.$className.' could not be retrieved');
 
-        $properties = $this->reflectionHelper->getDtoParamProperties($reflectionClass);
+        $properties = $this->reflectionHelper->getAttributedProperties($reflectionClass);
 
         $propertyMetadata = [];
         foreach ($properties as $property) {

@@ -16,7 +16,7 @@ namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\StrictTypesDto;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-final class TestController
+class TypeConflictingDtoController
 {
     public function __invoke(StrictTypesDto $dto): JsonResponse
     {

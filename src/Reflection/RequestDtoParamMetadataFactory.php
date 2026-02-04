@@ -50,6 +50,12 @@ class RequestDtoParamMetadataFactory
             if ('Cannot create union with "mixed" standalone type.' !== $e->getMessage()) {
                 throw $e;
             }
+
+            trigger_error(
+                sprintf('Unable to guess type for mixed union type for %s::%s', $className, $propertyName),
+                E_USER_WARNING,
+            );
+
             // Defensive fallback for invalid PHPDoc unions involving `mixed`
             $type = Type::mixed();
         }

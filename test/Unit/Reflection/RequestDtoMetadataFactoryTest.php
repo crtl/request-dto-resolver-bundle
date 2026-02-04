@@ -57,7 +57,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $prop2 = new \ReflectionProperty($className, 'prop2');
 
         $this->reflectionHelper->expects($this->once())
-            ->method('getDtoParamProperties')
+            ->method('getAttributedProperties')
             ->willReturn([$prop1, $prop2]);
 
         $this->paramMetadataFactory->expects($this->exactly(2))
@@ -133,7 +133,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
             ->willReturn($validatorMetadata);
 
         $this->reflectionHelper->expects($this->once())
-            ->method('getDtoParamProperties')
+            ->method('getAttributedProperties')
             ->willReturn([]);
 
         $cacheItem->expects($this->once())
@@ -155,7 +155,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $prop1 = new \ReflectionProperty($className, 'prop1');
 
         $this->reflectionHelper->expects($this->once())
-            ->method('getDtoParamProperties')
+            ->method('getAttributedProperties')
             ->willReturn([$prop1]);
 
         $this->paramMetadataFactory
