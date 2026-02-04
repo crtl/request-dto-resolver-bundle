@@ -1,7 +1,6 @@
 # crtl/request-dto-resolver-bundle
 
-!['codecov app svg image'](https://github.com/codecov/engineering-team/assets/152432831/e90313f4-9d3a-4b63-8b54-cfe14e7ec20d)
-[![codecov](https://codecov.io/github/crtl/request-dto-resolver-bundle/graph/badge.svg?token=VLXDJ925T8)](https://codecov.io/github/crtl/request-dto-resolver-bundle)
+[![codecov](https://codecov.io/gh/crtl/request-dto-resolver-bundle/branch/2.x/graph/badge.svg?token=VLXDJ925T8)](https://codecov.io/gh/crtl/request-dto-resolver-bundle)
 [![Latest Stable Version](http://poser.pugx.org/crtl/request-dto-resolver-bundle/v)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
 [![Total Downloads](http://poser.pugx.org/crtl/request-dto-resolver-bundle/downloads)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
 [![Latest Unstable Version](http://poser.pugx.org/crtl/request-dto-resolver-bundle/v/unstable)](https://packagist.org/packages/crtl/request-dto-resolver-bundle)
