@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.2.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.1.0...v2.2.0) (2026-02-04)
+
+
+### Bug Fixes
+
+* violation property path prefixing for array sequences. ([#15](https://github.com/crtl/request-dto-resolver-bundle/issues/15)) ([2f54bef](https://github.com/crtl/request-dto-resolver-bundle/commit/2f54bef9632854ac31f4b07785635d113871a609))
+
+
+### Miscellaneous Chores
+
+* **2.x:** release 2.1.0 ([#18](https://github.com/crtl/request-dto-resolver-bundle/issues/18)) ([70e8b01](https://github.com/crtl/request-dto-resolver-bundle/commit/70e8b0116acfb92d0e9c1282f4d958b7f02d55b8))
+* **2.x:** release 2.1.1 ([#16](https://github.com/crtl/request-dto-resolver-bundle/issues/16)) ([8406f9c](https://github.com/crtl/request-dto-resolver-bundle/commit/8406f9cdc2fd2f22831e6e9806dde1c68a94cf77))
+* release 2.1.0 ([a87512b](https://github.com/crtl/request-dto-resolver-bundle/commit/a87512bb43b9074c3571c0ee96575a7b8613a2e2))
+* release 2.2.0 ([9b9398c](https://github.com/crtl/request-dto-resolver-bundle/commit/9b9398c909b2c42d5a7f8528bedd28d8a8d2566a))
+
 ## [2.1.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.1.1...v2.1.0) (2026-02-04)
 
 
