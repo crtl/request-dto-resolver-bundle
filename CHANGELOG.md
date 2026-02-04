@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.1.1...v2.1.0) (2026-02-04)
+
+
+### Miscellaneous Chores
+
+* release 2.1.0 ([a87512b](https://github.com/crtl/request-dto-resolver-bundle/commit/a87512bb43b9074c3571c0ee96575a7b8613a2e2))
+
 ## [2.1.1](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.1.0...v2.1.1) (2026-02-02)
 
 
