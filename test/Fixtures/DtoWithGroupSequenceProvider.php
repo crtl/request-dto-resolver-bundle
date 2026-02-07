@@ -16,14 +16,12 @@ namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupProvider\TestGroupProvider;
-use Crtl\RequestDtoResolverBundle\Trait\RequestDtoTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
 #[Assert\GroupSequenceProvider(provider: TestGroupProvider::class)]
 class DtoWithGroupSequenceProvider
 {
-    use RequestDtoTrait;
     #[BodyParam]
     public ?string $first = null;
 

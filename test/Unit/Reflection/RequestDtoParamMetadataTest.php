@@ -158,7 +158,7 @@ final class RequestDtoParamMetadataTest extends TestCase
     }
 }
 
-class ParamMetadataDummyDto
+final class ParamMetadataDummyDto
 {
     #[QueryParam]
     public string $prop;
@@ -170,6 +170,6 @@ class ParamMetadataDummyDto
     public string $multipleAttributesProp;
 }
 
-class ParamMetadataNestedDto
+final class ParamMetadataNestedDto
 {
 }

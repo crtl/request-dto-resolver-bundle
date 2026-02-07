@@ -28,14 +28,14 @@ final class StrictTypesDto
     public ?string $nullableString;
 
     #[BodyParam]
-    #[Assert\NotBlank]
+    #[Assert\GreaterThan(0)]
     public int $int;
 
     #[BodyParam]
     public ?int $nullableInt;
 
     #[BodyParam]
-    #[Assert\NotBlank]
+    #[Assert\GreaterThan(0.0)]
     public float $float;
 
     #[BodyParam]

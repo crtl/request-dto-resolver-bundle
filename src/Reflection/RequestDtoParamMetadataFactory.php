@@ -39,14 +39,14 @@ class RequestDtoParamMetadataFactory
 
         /** @var ClassMetadataInterface $validatorClassMetadata */
         $validatorClassMetadata = $this->validator->getMetadataFor($className);
-        $constraintedProperties = $validatorClassMetadata->getConstrainedProperties();
+        $constrainedProperties = $validatorClassMetadata->getConstrainedProperties();
 
         $propertyName = $property->getName();
 
         try {
             $type = $this->propertyInfoExtractor->getType($className, $propertyName);
         } catch (\InvalidArgumentException $e) {
-            // Compabitibility fix because somehow type-info does not support unions with mixed.
+            // Compatibility fix because somehow type-info does not support unions with mixed.
             if ('Cannot create union with "mixed" standalone type.' !== $e->getMessage()) {
                 throw $e;
             }
@@ -93,7 +93,7 @@ class RequestDtoParamMetadataFactory
             $property->getDeclaringClass()->getName(),
             $propertyName,
             $typeDescription['builtInType'],
-            in_array($propertyName, $constraintedProperties, true),
+            in_array($propertyName, $constrainedProperties, true),
             $definetlyClassString,
             $isArrayType,
             // check if type is nullable and fall back to true when no type specified

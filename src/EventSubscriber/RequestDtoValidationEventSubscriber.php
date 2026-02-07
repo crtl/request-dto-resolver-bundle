@@ -14,20 +14,19 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\EventSubscriber;
 
 use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
-use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * Event subscriber which validates DTOs that have been resolved before by {@link RequestDtoResolver}.
+ * Event subscriber which validates DTOs that have been resolved before by {@link \Crtl\RequestDtoResolverBundle\RequestDtoResolver}.
  */
 final class RequestDtoValidationEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private RequestDtoValidator $validator,
+        private ValidatorInterface $validator,
         private DtoInstanceBagInterface $dtoInstanceBag,
     ) {
     }
@@ -46,10 +45,18 @@ final class RequestDtoValidationEventSubscriber implements EventSubscriberInterf
     {
         $request = $event->getRequest();
 
-        foreach ($this->dtoInstanceBag->getRegisteredInstances($request) as $instance) {
-            $violations = $this->validator->validateAndHydrate($instance, $request);
+        foreach ($this->dtoInstanceBag->getRegisteredInstances($request) as $className => $instance) {
+            // Check for stored hydration violations first
+            $hydrationViolations = $this->dtoInstanceBag->getHydrationViolations($className, $request);
 
-            if ($violations->count()) {
+            // Standard Symfony validation on fully-hydrated DTO
+            $violations = $this->validator->validate($instance);
+
+            if (null !== $hydrationViolations) {
+                $violations->addAll($hydrationViolations);
+            }
+
+            if ($violations->count() > 0) {
                 throw new RequestValidationException($instance, $violations);
             }
         }

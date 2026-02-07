@@ -42,6 +42,11 @@ class RequestDtoMetadataFactory
         }
 
         $reflectionClass = new \ReflectionClass($className);
+
+        if (!$reflectionClass->isInstantiable()) {
+            throw new \LogicException(sprintf('DTO class "%s" must be instantiable.', $reflectionClass->getName()));
+        }
+
         $validatorMetadata = $this->validator->getMetadataFor($className);
 
         assert($validatorMetadata instanceof ClassMetadataInterface, 'Validator metadata for '.$className.' could not be retrieved');

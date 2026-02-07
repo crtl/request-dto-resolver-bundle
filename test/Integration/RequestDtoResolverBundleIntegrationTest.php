@@ -93,17 +93,18 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         self::assertNull($data['nullableArray']);
     }
 
-    public function testReturns400WhenValidationFails(): void
+    public function testReturns400WhenHydrationFails(): void
     {
         self::bootKernel();
         $kernel = self::$kernel;
 
+        // Sending null for non-nullable typed properties causes hydration TypeErrors
         $payload = [
-            'string' => '',      // NotBlank violation
-            'int' => null,          // NotBlank considers 0 as blank -> violation (Symfony behavior)
-            'float' => null,      // NotBlank considers 0.0 as blank -> violation
-            'bool' => false,     // NotBlank considers false as blank -> violation
-            'array' => [],       // NotBlank considers empty array as blank -> violation
+            'string' => null,    // TypeError: cannot assign null to string
+            'int' => null,       // TypeError: cannot assign null to int
+            'float' => null,     // TypeError: cannot assign null to float
+            'bool' => null,      // TypeError: cannot assign null to bool
+            'array' => null,     // TypeError: cannot assign null to array
         ];
 
         $request = Request::create(
@@ -120,11 +121,40 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
 
         $request->attributes->set('_controller', $controller);
 
-        // Replace with your concrete exception type:
-        // e.g. \Crtl\RequestDtoResolverBundle\Exception\RequestDtoValidationException::class
+        $response = $kernel->handle($request);
+
+        self::assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
+    }
+
+    public function testReturns400WhenValidationFails(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Values with correct types but failing validation constraints
+        $payload = [
+            'string' => '',      // NotBlank violation
+            'int' => 0,          // NotBlank considers 0 as blank
+            'float' => 0.0,      // NotBlank considers 0.0 as blank
+            'bool' => false,     // NotBlank considers false as blank
+            'array' => [],       // NotBlank considers empty array as blank
+        ];
+
+        $request = Request::create(
+            uri: '/_test',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            content: json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new StrictTypesDtoController();
+
+        $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        var_dump($response->getContent());
 
         self::assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
     }
@@ -222,7 +252,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        echo $response->getContent();
 
         self::assertSame(400, $response->getStatusCode());
     }
@@ -303,7 +332,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        echo $response->getContent();
 
         self::assertSame($expectedStatus, $response->getStatusCode());
 
@@ -408,7 +436,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        var_dump($response->getContent());
 
         self::assertValidationErrorResponse($response, [
             'property[0][key]',

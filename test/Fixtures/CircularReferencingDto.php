@@ -15,15 +15,16 @@ namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
-class DtoWithNestedDtoArray
+class CircularReferencingDto
 {
+    #[BodyParam]
+    public ?CircularReferencingDto $prop;
+
     /**
-     * @var NestedChildDTO[]
+     * @var CircularReferencingDto[]
      */
     #[BodyParam]
-    #[Assert\Valid]
-    public array $children;
+    public array $array;
 }

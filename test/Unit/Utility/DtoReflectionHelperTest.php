@@ -139,10 +139,14 @@ final class DtoReflectionHelperTest extends TestCase
 
     public function testIsRequestDto(): void
     {
+        // @phpstan-ignore method.alreadyNarrowedType
         $this->assertTrue($this->helper->isRequestDto(AllParamTypesDTO::class));
+        // @phpstan-ignore method.alreadyNarrowedType
         $this->assertTrue($this->helper->isRequestDto(new AllParamTypesDTO()));
+        // @phpstan-ignore method.alreadyNarrowedType
         $this->assertTrue($this->helper->isRequestDto(new \ReflectionClass(AllParamTypesDTO::class)));
 
+        // @phpstan-ignore method.alreadyNarrowedType
         $this->assertFalse($this->helper->isRequestDto(\stdClass::class));
     }
 }

@@ -172,7 +172,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
     }
 }
 
-class DummyDto
+final class DummyDto
 {
     public string $prop1;
 

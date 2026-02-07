@@ -15,7 +15,6 @@ namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
-use Crtl\RequestDtoResolverBundle\Trait\RequestDtoTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
@@ -23,8 +22,6 @@ use Symfony\Component\Validator\GroupSequenceProviderInterface;
 #[Assert\GroupSequenceProvider]
 final class GroupSequenceProviderDTO implements GroupSequenceProviderInterface
 {
-    use RequestDtoTrait;
-
     #[BodyParam]
     public ?string $first = null;
 
@@ -39,7 +36,7 @@ final class GroupSequenceProviderDTO implements GroupSequenceProviderInterface
     {
         $groups = [self::class];
 
-        if ('validate_second' === $this->getValue('first')) {
+        if ('validate_second' === $this->first) {
             $groups[] = 'First';
         }
 

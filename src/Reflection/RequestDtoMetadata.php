@@ -54,11 +54,12 @@ class RequestDtoMetadata
          */
         private readonly ClassMetadataInterface $validatorMetadata,
     ) {
-        foreach ($propertyMetadata as $propertyMetadata) {
-            $this->propertyMetadata[$propertyMetadata->getPropertyName()] = $propertyMetadata;
+        foreach ($propertyMetadata as $propMetadata) {
+            $propertyName = $propMetadata->getPropertyName();
+            $this->propertyMetadata[$propertyName] = $propMetadata;
 
-            if ($propertyMetadata->isConstrained()) {
-                $this->constrainedProperties[$propertyMetadata->getPropertyName()] = $propertyMetadata;
+            if ($propMetadata->isConstrained()) {
+                $this->constrainedProperties[$propertyName] = $propMetadata;
             }
         }
     }
@@ -172,12 +173,12 @@ class RequestDtoMetadata
      *
      * @throws \ReflectionException
      */
-    public function newInstance(...$args): ?object
+    public function newInstance(...$args): object
     {
         $class = $this->getReflectionClass();
 
         return $class->getConstructor()
-            ? $class->newInstanceArgs($args)
+            ? $class->newInstance(...$args)
             : $class->newInstanceWithoutConstructor()
         ;
     }

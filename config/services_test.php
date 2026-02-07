@@ -21,5 +21,6 @@ return static function (ContainerConfigurator $container): void {
         ->public();
 
     $services->set(Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupProvider\TestGroupProvider::class)
+        ->tag('validator.group_provider')
         ->public();
 };

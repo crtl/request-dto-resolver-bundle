@@ -15,6 +15,7 @@ namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Dto containing nested child dtos as single child and array of children.
@@ -25,11 +26,13 @@ class DtoWithChildDto
     use AllTypesBodyParamsTrait;
 
     #[BodyParam]
+    #[Assert\Valid]
     public ?NestedChildDTO $child;
 
     /**
      * @var NestedChildDTO[]
      */
     #[BodyParam]
+    #[Assert\Valid]
     public array $children;
 }

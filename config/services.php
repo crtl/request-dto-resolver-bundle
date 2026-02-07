@@ -15,6 +15,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
 use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestValidationExceptionEventSubscriber;
+use Crtl\RequestDtoResolverBundle\Factory\RequestDtoFactory;
 use Crtl\RequestDtoResolverBundle\PropertyInfo\PropertyInfoExtractorFactory;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadataFactory;
@@ -22,8 +23,6 @@ use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBag;
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
-use Crtl\RequestDtoResolverBundle\Validator\GroupSequenceExtractor;
-use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
@@ -42,12 +41,6 @@ return static function (ContainerConfigurator $container): void {
         ->private();
 
     $services->alias(DtoInstanceBagInterface::class, DtoInstanceBag::class);
-
-    $services->set(GroupSequenceExtractor::class)
-        ->args([
-            '$groupProviderLocator' => service('service_container'),
-        ])
-        ->private();
 
     $services->set(ReflectionExtractor::class)
         ->private();
@@ -84,25 +77,23 @@ return static function (ContainerConfigurator $container): void {
             '$cache' => service('cache.system'),
         ]);
 
-    $services->set(RequestDtoValidator::class)
+    $services->set(RequestDtoFactory::class)
         ->args([
-            '$validator' => service('validator'),
             '$metadataFactory' => service(RequestDtoMetadataFactory::class),
-            '$groupSequenceExtractor' => service(GroupSequenceExtractor::class),
         ])
-    ->public();
+        ->public();
 
     $services->set(RequestDtoResolver::class)
         ->args([
             '$dtoInstanceBag' => service(DtoInstanceBagInterface::class),
-            '$factory' => service(RequestDtoMetadataFactory::class),
             '$reflectionHelper' => service(DtoReflectionHelper::class),
+            '$requestDtoFactory' => service(RequestDtoFactory::class),
         ])
         ->tag('controller.argument_value_resolver', ['priority' => 50]);
 
     $services->set(RequestDtoValidationEventSubscriber::class)
         ->args([
-            '$validator' => service(RequestDtoValidator::class),
+            '$validator' => service('validator'),
             '$dtoInstanceBag' => service(DtoInstanceBagInterface::class),
         ])
         ->tag('kernel.event_subscriber');

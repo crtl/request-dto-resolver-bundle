@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Utility;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 final class DtoInstanceBag implements DtoInstanceBagInterface
 {
@@ -37,6 +38,25 @@ final class DtoInstanceBag implements DtoInstanceBagInterface
                 get_class($instance) => $instance,
             ],
         ));
+    }
+
+    public function registerHydrationViolations(
+        string $className,
+        ConstraintViolationListInterface $violations,
+        Request $request
+    ): void {
+        /** @var array<class-string, ConstraintViolationListInterface> $existing */
+        $existing = $request->attributes->get(self::DTO_HYDRATION_VIOLATIONS_KEY, []);
+        $existing[$className] = $violations;
+        $request->attributes->set(self::DTO_HYDRATION_VIOLATIONS_KEY, $existing);
+    }
+
+    public function getHydrationViolations(string $className, Request $request): ?ConstraintViolationListInterface
+    {
+        /** @var array<class-string, ConstraintViolationListInterface> $violations */
+        $violations = $request->attributes->get(self::DTO_HYDRATION_VIOLATIONS_KEY, []);
+
+        return $violations[$className] ?? null;
     }
 
     /**

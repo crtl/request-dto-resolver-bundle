@@ -25,7 +25,7 @@ class TestGroupProvider implements GroupProviderInterface
 
         $groups = [self::class];
 
-        if ('validate_second' === $object->getValue('first')) {
+        if ('validate_second' === $object->first) {
             $groups[] = 'First';
         }
 
