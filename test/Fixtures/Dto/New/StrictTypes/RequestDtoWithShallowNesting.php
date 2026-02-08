@@ -11,16 +11,23 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\StrictTypes;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
-use Symfony\Component\Validator\Constraints as Assert;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\AllTypesBodyParamsTrait;
 
 #[RequestDto]
-final class NestedChildDTO
+class RequestDtoWithShallowNesting
 {
+    use AllTypesBodyParamsTrait;
+
     #[BodyParam]
-    #[Assert\NotBlank]
-    public string $childName;
+    public ?ChildRequestDto $child;
+
+    /**
+     * @var ChildRequestDto[]
+     */
+    #[BodyParam]
+    public array $children;
 }

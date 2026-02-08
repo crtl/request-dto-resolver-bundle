@@ -11,21 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupProvider\TestGroupProvider;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
-#[Assert\GroupSequenceProvider(provider: TestGroupProvider::class)]
-class DtoWithGroupSequenceProvider
+final class NestedChildStrictDto
 {
     #[BodyParam]
-    public ?string $first = null;
-
-    #[BodyParam]
-    #[Assert\NotBlank(groups: ['First'])]
-    public ?string $second = null;
+    #[Assert\NotBlank]
+    public string $childName;
 }

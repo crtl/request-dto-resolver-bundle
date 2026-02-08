@@ -54,7 +54,7 @@ abstract class AbstractNestedParam extends AbstractParam
             : $this->getDataFromRequest($request)
         ;
 
-        return array_key_exists($this->getName(), $data);
+        return is_array($data) && array_key_exists($this->getName(), $data);
     }
 
     public function getValueFromRequest(Request $request): mixed

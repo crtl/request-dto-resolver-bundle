@@ -11,10 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\AllTypesBodyParamsTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -27,10 +28,10 @@ class DtoWithChildDto
 
     #[BodyParam]
     #[Assert\Valid]
-    public ?NestedChildDTO $child;
+    public ?NestedChildStrictDto $child;
 
     /**
-     * @var NestedChildDTO[]
+     * @var NestedChildStrictDto[]
      */
     #[BodyParam]
     #[Assert\Valid]

@@ -13,16 +13,16 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\CollectionPathTestDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MixedDtoWithDefaultsController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MultipleFilesTestController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\StrictTypesDtoController;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithGroupSequenceProvider;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithNestedDtoArray;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupSequenceProviderDTO;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy\ExampleDto;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\NonStrictTypeConflictingDto;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\TypeConflictingDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\CollectionPathTestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\DtoWithGroupSequenceProvider;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\GroupSequenceProviderDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Legacy\ExampleDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested\DtoWithNestedDtoArray;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\NonStrictTypeConflictingDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\TypeConflictingDto;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -531,7 +531,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $response = $kernel->handle($request);
 
         $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        print_r($data);
         self::assertSame(200, $response->getStatusCode());
 
         // Provided values
@@ -662,14 +661,14 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
 
         self::assertSame(200, $response->getStatusCode());
         $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        self::assertArrayHasKey("intProperty", $data);
-        self::assertSame(1, $data["intProperty"]);
-        self::assertArrayHasKey("floatProperty", $data);
-        self::assertSame(1.2, $data["floatProperty"]);
-        self::assertArrayHasKey("boolProperty", $data);
-        self::assertSame(false, $data["boolProperty"]);
-        self::assertArrayHasKey("stringProperty", $data);
-        self::assertSame("1", $data["stringProperty"]);
+        self::assertArrayHasKey('intProperty', $data);
+        self::assertSame(1, $data['intProperty']);
+        self::assertArrayHasKey('floatProperty', $data);
+        self::assertSame(1.2, $data['floatProperty']);
+        self::assertArrayHasKey('boolProperty', $data);
+        self::assertFalse($data['boolProperty']);
+        self::assertArrayHasKey('stringProperty', $data);
+        self::assertSame('1', $data['stringProperty']);
     }
 
     /**

@@ -11,20 +11,26 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\MixedType;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\AllTypesBodyParamsTrait;
 
 #[RequestDto]
-class CircularReferencingDto
+class MixedRequestDtoWithDeepNesting
 {
-    #[BodyParam]
-    public ?CircularReferencingDto $prop;
+    use AllTypesBodyParamsTrait;
 
     /**
-     * @var CircularReferencingDto[]
+     * @var MixedDtoWithChildDto|null
      */
     #[BodyParam]
-    public array $array;
+    public mixed $child;
+
+    /**
+     * @var MixedDtoWithChildDto[]
+     */
+    #[BodyParam]
+    public array $children;
 }

@@ -216,6 +216,9 @@ class RequestDtoFactory
 
                 $resultArray = [];
                 foreach ($valueArray as $i => $nestedValue) {
+                    if (!is_array($nestedValue)) {
+                        continue;
+                    }
                     if ($isArray && $attr instanceof AbstractNestedParam) {
                         $attr = clone $attr;
                         $attr->setIndex($i);
@@ -224,6 +227,7 @@ class RequestDtoFactory
                     try {
                         $resultArray[] = $this->createInstanceRecursive(
                             $nestedClassName,
+                            // @phpstan-ignore argument.type
                             $context instanceof Request
                                 ? $context
                                 : $nestedValue,
@@ -381,7 +385,14 @@ class RequestDtoFactory
         RequestDtoParamMetadata $paramMetadata,
         array $data
     ): mixed {
-        return $data[$paramMetadata->getPropertyName()] ?? null;
+        $propertyName = $paramMetadata->getPropertyName();
+        $value = $data[$propertyName] ?? null;
+
+        if ($attr instanceof QueryParam) {
+            $value = $attr->transformValue($value);
+        }
+
+        return $value;
     }
 
     /**

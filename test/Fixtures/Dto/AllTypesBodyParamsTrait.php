@@ -11,32 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Symfony\Component\Validator\Constraints as Assert;
 
 trait AllTypesBodyParamsTrait
 {
     #[BodyParam]
-    #[Assert\NotBlank]
-    #[Assert\Type('string')]
     public string $name;
 
     #[BodyParam]
-    #[Assert\NotBlank]
-    #[Assert\Type('int')]
-    #[Assert\Positive]
     public int $age;
 
     #[BodyParam]
-    #[Assert\NotBlank]
-    #[Assert\Type('bool')]
     public bool $isMale;
 
     #[BodyParam]
-    #[Assert\NotBlank]
-    #[Assert\Type('float')]
-    #[Assert\Positive]
     public float $height;
 }

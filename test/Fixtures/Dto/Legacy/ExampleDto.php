@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Legacy;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
@@ -19,6 +19,7 @@ use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
 use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested\NestedChildMixedDto;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -51,10 +52,10 @@ class ExampleDto
 
     // Nested DTOs are supported for BodyParam and QueryParam
     #[BodyParam('nested'), Assert\Valid]
-    public ?NestedChildDTO $nestedBodyDto;
+    public ?NestedChildMixedDto $nestedBodyDto;
 
     #[QueryParam('nested')]
-    public ?NestedChildDTO $nestedQueryParamDto;
+    public ?NestedChildMixedDto $nestedQueryParamDto;
 
     // Optionally implement constructor which accepts request object
     public function __construct(public readonly Request $request)

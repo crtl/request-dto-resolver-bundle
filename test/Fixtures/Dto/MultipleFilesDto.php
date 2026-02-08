@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto;
 
 use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;

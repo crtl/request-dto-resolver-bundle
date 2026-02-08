@@ -19,8 +19,8 @@ use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
 use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\AllParamTypesDTO;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\NestedChildDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\AllParamTypesDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested\NestedChildStrictDto;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use PHPUnit\Framework\TestCase;
 
@@ -37,7 +37,7 @@ final class DtoReflectionHelperTest extends TestCase
     {
         $class = new #[RequestDto] class {
             #[BodyParam]
-            public ?NestedChildDTO $nested;
+            public ?NestedChildStrictDto $nested;
 
             #[BodyParam]
             public ?string $notDto;
@@ -51,7 +51,7 @@ final class DtoReflectionHelperTest extends TestCase
         $property = $reflectionClass->getProperty('nested');
         $type = $this->helper->getDtoClassNameFromReflectionProperty($property);
         $this->assertNotNull($type);
-        $this->assertEquals(NestedChildDTO::class, $type->getName());
+        $this->assertEquals(NestedChildStrictDto::class, $type->getName());
 
         $property = $reflectionClass->getProperty('notDto');
         $type = $this->helper->getDtoClassNameFromReflectionProperty($property);
@@ -67,14 +67,14 @@ final class DtoReflectionHelperTest extends TestCase
         $unionClass = new #[RequestDto]
         class {
             #[BodyParam]
-            public NestedChildDTO|string $unionProperty;
+            public NestedChildStrictDto|string $unionProperty;
         };
 
         $intersectionClass = new #[RequestDto]
         class {
             #[BodyParam]
             // @phpstan-ignore property.unresolvableNativeType
-            public NestedChildDTO&\Stringable $intersectionProperty;
+            public NestedChildStrictDto&\Stringable $intersectionProperty;
         };
 
         $unionReflectionClass = new \ReflectionClass($unionClass);

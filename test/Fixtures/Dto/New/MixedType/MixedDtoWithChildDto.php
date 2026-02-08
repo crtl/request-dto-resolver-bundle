@@ -11,28 +11,32 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\MixedType;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\AllTypesBodyParamsTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * 3 layer deep nested dto.
+ * Dto containing nested child dtos as single child and array of children.
  */
 #[RequestDto]
-class DeepNestedDto
+class MixedDtoWithChildDto
 {
     use AllTypesBodyParamsTrait;
 
-    #[BodyParam]
-    #[Assert\Valid]
-    public ?DtoWithChildDto $child;
-
     /**
-     * @var DtoWithChildDto[]
+     * @var MixedChildRequestDto|null
      */
     #[BodyParam]
     #[Assert\Valid]
-    public array $children;
+    public mixed $child;
+
+    /**
+     * @var MixedChildRequestDto[]
+     */
+    #[BodyParam]
+    #[Assert\Valid]
+    public mixed $children;
 }

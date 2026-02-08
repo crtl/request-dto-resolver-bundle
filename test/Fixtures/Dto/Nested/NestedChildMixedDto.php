@@ -11,18 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
-final class UnionTypesDTO
+final class NestedChildMixedDto
 {
     #[BodyParam]
-    public $stringOrInt;
-
-    #[QueryParam]
-    public $floatOrInt;
+    #[Assert\NotBlank]
+    public mixed $childName;
 }

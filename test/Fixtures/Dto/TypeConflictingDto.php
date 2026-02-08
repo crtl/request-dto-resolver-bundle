@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
@@ -19,8 +19,8 @@ use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 /**
  * Dto with strict typed properties but not equivalent validation attributes to ensure data is correct.
  */
-#[RequestDto(strict: false)]
-class NonStrictTypeConflictingDto
+#[RequestDto]
+class TypeConflictingDto
 {
     #[BodyParam]
     public int $intProperty;

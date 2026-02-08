@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Crtl\RequestDtoResolverBundle\Test\Fixtures;
+namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupProvider\TestGroupProvider;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 #[RequestDto]
-#[Assert\GroupSequenceProvider]
-final class GroupSequenceProviderDTO implements GroupSequenceProviderInterface
+#[Assert\GroupSequenceProvider(provider: TestGroupProvider::class)]
+class DtoWithGroupSequenceProvider
 {
     #[BodyParam]
     public ?string $first = null;
@@ -28,18 +28,4 @@ final class GroupSequenceProviderDTO implements GroupSequenceProviderInterface
     #[BodyParam]
     #[Assert\NotBlank(groups: ['First'])]
     public ?string $second = null;
-
-    /**
-     * @return string[]
-     */
-    public function getGroupSequence(): array
-    {
-        $groups = [self::class];
-
-        if ('validate_second' === $this->first) {
-            $groups[] = 'First';
-        }
-
-        return $groups;
-    }
 }

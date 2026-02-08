@@ -16,13 +16,33 @@ namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\CircularReferenceException;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\RequestDtoHydrationException;
 use Crtl\RequestDtoResolverBundle\Factory\RequestDtoFactory;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\AllParamTypesDTO;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\CircularReferencingDto;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithNestedDtoArray;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\NestedChildDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\CircularReferencingRequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\MixedType\MixedRequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\StrictTypes\NonStrictRequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\StrictTypes\RequestDtoWithDeepNesting;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\StrictTypes\RequestDtoWithShallowNesting;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\StrictTypes\StrictRequestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\TransformQueryParamRequestDto;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\ConstraintViolationInterface;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
+/**
+ * @phpstan-type HydrationTestCaseArgs array{
+ *      method: string,
+ *      context: array<string, mixed>|Request,
+ *      expected: array<string, mixed>,
+ *      className: class-string,
+ * }
+ * @phpstan-type ViolationTestCaseArgs array{
+ *      method: string,
+ *      context: array<string, mixed>|Request,
+ *      expected: string[],
+ *      className: class-string,
+ * }
+ */
 final class RequestDtoFactoryIntegrationTest extends KernelTestCase
 {
     private RequestDtoFactory $factory;
@@ -36,146 +56,488 @@ final class RequestDtoFactoryIntegrationTest extends KernelTestCase
         $this->factory = $factory;
     }
 
-    public function testFromRequestThrowsReflectionExceptionWhenClassDoesNotExist(): void
+    /**
+     * @return iterable<string, array{0: string, 1: array<string, mixed>|Request}>
+     */
+    public static function throwsReflectionExceptionWhenClassDoesNotExist(): iterable
+    {
+        yield 'fromRequest' => ['fromRequest', new Request()];
+        yield 'fromArray' => ['fromArray', []];
+    }
+
+    /**
+     * @param array<string, mixed>|Request $context
+     */
+    #[DataProvider('throwsReflectionExceptionWhenClassDoesNotExist')]
+    public function testThrowsReflectionExceptionWhenClassDoesNotExist(string $method, array|Request $context): void
     {
         $this->expectException(\ReflectionException::class);
-        // @phpstan-ignore argument.type
-        $this->factory->fromRequest('NonExistingClass', new Request());
+        $this->factory->$method('NonExistingClass', $context);
     }
 
-    public function testFromRequestHydratesAllParamTypes(): void
+    /**
+     * @return iterable<string, array{method: string, context: array<string, mixed>|Request}>
+     */
+    public static function throwsCircularReferenceExceptionWhenNestedCircularReferenceIsDetectedProvider(): iterable
     {
-        $request = new Request(
-            query: ['query' => 'query_val'],
-            request: ['body' => 'body_val'],
-            attributes: ['_route_params' => ['_route' => 'test_route']],
-            server: ['HTTP_USER_AGENT' => 'test_ua'],
-        );
-
-        /** @var AllParamTypesDTO $dto */
-        $dto = $this->factory->fromRequest(AllParamTypesDTO::class, $request);
-
-        // @phpstan-ignore method.alreadyNarrowedType
-        $this->assertInstanceOf(AllParamTypesDTO::class, $dto);
-        $this->assertEquals('query_val', $dto->query);
-        $this->assertEquals('body_val', $dto->body);
-        $this->assertEquals('test_route', $dto->routeName);
-        $this->assertEquals('test_ua', $dto->userAgent);
+        yield 'fromArray with single child' => [
+            'method' => 'fromArray',
+            'context' => ['prop' => []],
+        ];
+        yield 'fromArray with array child' => [
+            'method' => 'fromArray',
+            'context' => ['array' => [[]]],
+        ];
+        yield 'fromRequest with single child' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: ['prop' => []]),
+        ];
+        yield 'fromRequest with array child' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: ['array' => [[]]]),
+        ];
     }
 
-    public function testFromRequestHydratesNestedDtos(): void
+    /**
+     * @param array<string, mixed>|Request $context
+     */
+    #[DataProvider('throwsCircularReferenceExceptionWhenNestedCircularReferenceIsDetectedProvider')]
+    public function testThrowsCircularReferenceExceptionWhenNestedCircularReferenceIsDetected(string $method, array|Request $context): void
     {
-        $request = new Request(
-            request: [
-                'children' => [
-                    ['childName' => 'child1'],
-                    ['childName' => 'child2'],
+        self::expectException(CircularReferenceException::class);
+        $this->factory->$method(CircularReferencingRequestDto::class, $context);
+    }
+
+    /**
+     * @return iterable<string, HydrationTestCaseArgs>
+     */
+    public static function correctlyHydratesRequestDtosProvider(): iterable
+    {
+        // TODO: implement data providers, optionally add more entries.
+        yield 'mixed fromRequest' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: ['prop' => []]),
+            'expected' => [],
+            'className' => MixedRequestDto::class,
+        ];
+        yield 'mixed fromArray' => [
+            'method' => 'fromArray',
+            'context' => [],
+            'expected' => [],
+            'className' => MixedRequestDto::class,
+        ];
+
+        // TODO: implement data providers, optionally add more entries.
+        yield 'strict fromRequest' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: ['prop' => []]),
+            'expected' => [],
+            'className' => StrictRequestDto::class,
+        ];
+        yield 'strict fromArray' => [
+            'method' => 'fromArray',
+            'context' => [],
+            'expected' => [],
+            'className' => StrictRequestDto::class,
+        ];
+
+        // TODO: implement data provider
+        yield 'non-strict fromRequest' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: ['prop' => []]),
+            'expected' => [],
+            'className' => NonStrictRequestDto::class,
+        ];
+        yield 'non-strict fromArray' => [
+            'method' => 'fromArray',
+            'context' => [],
+            'expected' => [],
+            'className' => NonStrictRequestDto::class,
+        ];
+
+        yield 'deep nested fromRequest with single child' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: [
+                'child' => [
+                    'child' => [
+                        'childName' => 'name',
+                    ]
+                ]
+            ]),
+            'expected' => [
+                'child' => [
+                    'child' => [
+                        'childName' => 'name',
+                    ]
                 ]
             ],
-        );
-
-        /** @var DtoWithNestedDtoArray $dto */
-        $dto = $this->factory->fromRequest(DtoWithNestedDtoArray::class, $request);
-
-        // @phpstan-ignore method.alreadyNarrowedType
-        $this->assertInstanceOf(DtoWithNestedDtoArray::class, $dto);
-        $this->assertCount(2, $dto->children);
-
-        // @phpstan-ignore method.alreadyNarrowedType
-        $this->assertInstanceOf(NestedChildDTO::class, $dto->children[0]);
-        $this->assertEquals('child1', $dto->children[0]->childName);
-
-        // @phpstan-ignore method.alreadyNarrowedType
-        $this->assertInstanceOf(NestedChildDTO::class, $dto->children[1]);
-        $this->assertEquals('child2', $dto->children[1]->childName);
-    }
-
-    public function testFromArrayHydratesDto(): void
-    {
-        $data = [
-            'query' => 'q',
-            'body' => 'b',
-            'routeName' => 'r',
-            'userAgent' => 'ua'
+            'className' => RequestDtoWithDeepNesting::class,
+        ];
+        yield 'deep nested fromRequest with multiple children' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: [
+                'children' => [
+                    [
+                        'children' => [[
+                            'childName' => 'name',
+                        ]]
+                    ]
+                ]
+            ]),
+            'expected' => [
+                'children' => [
+                    [
+                        'children' => [[
+                            'childName' => 'name',
+                        ]]
+                    ]
+                ]
+            ],
+            'className' => RequestDtoWithDeepNesting::class,
+        ];
+        yield 'deep nested fromArray with single child' => [
+            'method' => 'fromArray',
+            'context' => [
+                'child' => [
+                    'child' => [
+                        'childName' => 'name',
+                    ]
+                ]
+            ],
+            'expected' => [
+                'child' => [
+                    'child' => [
+                        'childName' => 'name',
+                    ]
+                ]
+            ],
+            'className' => RequestDtoWithDeepNesting::class,
+        ];
+        yield 'deep nested fromArray with multiple children' => [
+            'method' => 'fromArray',
+            'context' => [
+                'children' => [
+                    [
+                        'children' => [[
+                            'childName' => 'name',
+                        ]]
+                    ]
+                ]
+            ],
+            'expected' => [
+                'children' => [
+                    [
+                        'children' => [[
+                            'childName' => 'name',
+                        ]]
+                    ]
+                ]
+            ],
+            'className' => RequestDtoWithDeepNesting::class,
         ];
 
-        /** @var AllParamTypesDTO $dto */
-        $dto = $this->factory->fromArray(AllParamTypesDTO::class, $data);
-
-        // @phpstan-ignore method.alreadyNarrowedType
-        $this->assertInstanceOf(AllParamTypesDTO::class, $dto);
-        $this->assertEquals('q', $dto->query);
-        $this->assertEquals('b', $dto->body);
-        $this->assertEquals('r', $dto->routeName);
-        $this->assertEquals('ua', $dto->userAgent);
-    }
-
-    public function testFromArrayThrowsExceptionOnTypeError(): void
-    {
-        $data = [
-            'childName' => ['invalid'], // Expected string, got array
+        yield 'shallow nested fromRequest with single child' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: [
+                'child' => [
+                    'childName' => 'name',
+                ]
+            ]),
+            'expected' => [
+                'child' => [
+                    'childName' => 'name',
+                ]
+            ],
+            'className' => RequestDtoWithShallowNesting::class,
+        ];
+        yield 'shallow nested fromRequest with multiple children' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: [
+                'children' => [[
+                    'childName' => 'name',
+                ]]
+            ]),
+            'expected' => [
+                'children' => [[
+                    'childName' => 'name',
+                ]]
+            ],
+            'className' => RequestDtoWithShallowNesting::class,
+        ];
+        yield 'shallow nested fromArray with single child' => [
+            'method' => 'fromArray',
+            'context' => [
+                'child' => [
+                    'childName' => 'name',
+                ]
+            ],
+            'expected' => [
+                'child' => [
+                    'childName' => 'name',
+                ]
+            ],
+            'className' => RequestDtoWithShallowNesting::class,
+        ];
+        yield 'shallow nested fromArray with multiple children' => [
+            'method' => 'fromArray',
+            'context' => [
+                'children' => [[
+                    'childName' => 'name',
+                ]]
+            ],
+            'expected' => [
+                'children' => [[
+                    'childName' => 'name',
+                ]]
+            ],
+            'className' => RequestDtoWithShallowNesting::class,
         ];
 
-        $this->expectException(RequestDtoHydrationException::class);
-
-        try {
-            $this->factory->fromArray(NestedChildDTO::class, $data);
-        } catch (RequestDtoHydrationException $e) {
-            $this->assertCount(1, $e->violations);
-            // The violation path is prefixed with the property name in fromArrayRecursive
-            $this->assertEquals('childName', $e->violations[0]->getPropertyPath());
-            throw $e;
-        }
+        yield 'transform query param fromRequest' => [
+            'method' => 'fromRequest',
+            'context' => new Request([
+                'queryInt' => '123',
+                'queryNullableInt' => '321',
+                'queryFloat' => '1.2',
+                'queryNullableFloat' => '3.14',
+                'queryBool' => 'yes',
+                'queryNullableBool' => 'false',
+            ]),
+            'expected' => [
+                'queryInt' => 123,
+                'queryNullableInt' => 321,
+                'queryFloat' => 1.2,
+                'queryNullableFloat' => 3.14,
+                'queryBool' => true,
+                'queryNullableBool' => false,
+            ],
+            'className' => TransformQueryParamRequestDto::class,
+        ];
+        yield 'transform query param fromArray' => [
+            'method' => 'fromArray',
+            'context' => [
+                'queryInt' => '123',
+                'queryNullableInt' => '321',
+                'queryFloat' => '1.2',
+                'queryNullableFloat' => '3.14',
+                'queryBool' => 'yes',
+                'queryNullableBool' => 'false',
+            ],
+            'expected' => [
+                'queryInt' => 123,
+                'queryNullableInt' => 321,
+                'queryFloat' => 1.2,
+                'queryNullableFloat' => 3.14,
+                'queryBool' => true,
+                'queryNullableBool' => false,
+            ],
+            'className' => TransformQueryParamRequestDto::class,
+        ];
     }
 
-    public function testFromArrayThrowsExceptionWithNestedArrayRequestDtoTypeMismatch(): void
+    /**
+     * @param array<string, mixed>|Request $context
+     * @param array<string, mixed> $expected
+     * @param class-string $className
+     */
+    #[DataProvider('correctlyHydratesRequestDtosProvider')]
+    public function testCorrectlyHydratesRequestDtos(
+        string        $method,
+        array|Request $context,
+        array         $expected,
+        string        $className,
+    ): void
+    {
+        $dto = $this->factory->$method($className, $context);
+        self::assertInstanceOf($className, $dto);
+        self::objectMatchesExpectedStructure($dto, $expected);
+    }
+
+    /**
+     * @return iterable<string, ViolationTestCaseArgs>
+     */
+    public static function throwsRequestDtoHydrationExceptionWithPropertyTypeViolationsWhenHydratingTypedDtoWithInvalidTypesProvider(): iterable
+    {
+        yield 'fromArray with invalid body scalar types' => [
+            'method' => 'fromArray',
+            'context' => [
+                'bodyString' => ['not', 'a', 'string'],
+                'bodyInt' => 'not-a-number',
+                'bodyFloat' => 'not-a-number',
+                'bodyBool' => ['not-a-bool'],
+                'bodyArray' => 'not-an-array',
+            ],
+            'expected' => ['bodyString', 'bodyInt', 'bodyFloat', 'bodyBool', 'bodyArray'],
+            'className' => StrictRequestDto::class,
+        ];
+
+        yield 'fromRequest with invalid body scalar types' => [
+            'method' => 'fromRequest',
+            'context' => new Request(request: [
+                'bodyString' => ['not', 'a', 'string'],
+                'bodyInt' => 'not-a-number',
+                'bodyFloat' => 'not-a-number',
+                'bodyBool' => ['not-a-bool'],
+                'bodyArray' => 'not-an-array',
+            ]),
+            'expected' => ['bodyString', 'bodyInt', 'bodyFloat', 'bodyBool', 'bodyArray'],
+            'className' => StrictRequestDto::class,
+        ];
+
+        yield 'fromArray with single invalid property among valid ones' => [
+            'method' => 'fromArray',
+            'context' => [
+                'bodyString' => 'valid-string',
+                'bodyInt' => ['not-an-int'],
+            ],
+            'expected' => ['bodyInt'],
+            'className' => StrictRequestDto::class,
+        ];
+
+        yield 'fromArray with invalid types across param sources' => [
+            'method' => 'fromArray',
+            'context' => [
+                'bodyInt' => ['not-an-int'],
+            ],
+            'expected' => ['bodyInt'],
+            'className' => StrictRequestDto::class,
+        ];
+
+        yield 'fromRequest with invalid types across param sources' => [
+            'method' => 'fromRequest',
+            'context' => new Request(
+                query: ['queryString' => ['not-a-string']],
+                request: ['bodyInt' => ['not-an-int']],
+            ),
+            'expected' => ['bodyInt', 'queryString'],
+            'className' => StrictRequestDto::class,
+        ];
+
+        yield 'fromArray with null for non-nullable properties' => [
+            'method' => 'fromArray',
+            'context' => [
+                'bodyString' => null,
+                'bodyInt' => null,
+            ],
+            'expected' => ['bodyString', 'bodyInt'],
+            'className' => StrictRequestDto::class,
+        ];
+
+        yield 'fromArray with deep nested dto' => [
+            'method' => 'fromArray',
+            'context' => [
+                'child' => [
+                    'child' => [
+                        'childName' => 1,
+                    ],
+                    'children' => [
+                        ['childName' => 1],
+                    ]
+                ],
+                'children' => [
+                    [
+                        'child' => [
+                            'childName' => 1,
+                        ],
+                        'children' => [
+                            ['childName' => 1],
+                            null,
+                        ]
+                    ],
+                ],
+            ],
+            'expected' => [
+                'child.child.childName',
+                'child.children[0].childName',
+                'children[0].child.childName',
+                'children[0].children[0].childName',
+            ],
+            'className' => RequestDtoWithDeepNesting::class,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed>|Request $context
+     * @param string[] $expectedViolations
+     * @param class-string $className
+     */
+    #[DataProvider('throwsRequestDtoHydrationExceptionWithPropertyTypeViolationsWhenHydratingTypedDtoWithInvalidTypesProvider')]
+    public function testThrowsRequestDtoHydrationExceptionWithPropertyTypeViolationsWhenHydratingTypedDtoWithInvalidTypes(
+        string        $method,
+        array|Request $context,
+        array         $expectedViolations,
+        string        $className,
+    ): void
     {
         self::expectException(RequestDtoHydrationException::class);
         try {
-            $this->factory->fromArray(
-                DtoWithNestedDtoArray::class,
-                ['children' => [
-                    [], // No name at all an property is not nullable
-                    ['childName' => 1], // Int despite string is expected
-                    ['childName' => 1.0], // float despite string is expected
-                    ['childName' => false], // bool despite string is expected
-                    ['childName' => new \stdClass()], // object despite string is expected
-                ]],
-            );
+            $this->factory->$method($className, $context);
         } catch (RequestDtoHydrationException $e) {
-            $this->assertCount(4, $e->violations);
-            self::assertSame('children[1].childName', $e->violations[0]->getPropertyPath());
-            self::assertSame('children[2].childName', $e->violations[1]->getPropertyPath());
-            self::assertSame('children[3].childName', $e->violations[2]->getPropertyPath());
-            self::assertSame('children[4].childName', $e->violations[3]->getPropertyPath());
-
+            self::assertRequestDtoHydrationException($e, $expectedViolations);
             throw $e;
         }
     }
 
-    public function testFromArrayThrowsCircularReferenceExceptionWhenCircularReferenceIsDetected(): void
+    /**
+     * @return array<string, ConstraintViolationInterface[]>
+     */
+    private static function mapViolationsToPath(ConstraintViolationListInterface $violations): array
     {
-        self::expectException(CircularReferenceException::class);
-        $this->factory->fromArray(CircularReferencingDto::class, ['prop' => []]);
+        $result = [];
+        foreach ($violations as $violation) {
+            $path = $violation->getPropertyPath();
+            $result[$path] ??= [];
+            $result[$path][] = $violation;
+        }
+
+        return $result;
     }
 
-    public function testFromArrayThrowsCircularReferenceExceptionWhenNestedCircularReferenceIsDetected(): void
+    /**
+     * @template TKey of array-key
+     * @template TVal
+     *
+     * @param array<TKey> $keys
+     * @param array<TKey, TVal> $array
+     */
+    private static function assertArrayHasKeys(array $keys, array $array): void
     {
-        self::expectException(CircularReferenceException::class);
-        $this->factory->fromArray(CircularReferencingDto::class, ['array' => [[]]]);
+        foreach ($keys as $key) {
+            self::assertArrayHasKey($key, $array);
+        }
     }
 
-    public function testFromRequestThrowsCircularReferenceExceptionWhenCircularReferenceIsDetected(): void
+    /**
+     * Helper to assert that error contains violations for given fields.
+     *
+     * @param string[]|array<string, mixed> $expected property paths of expected violations or a map of field names to expected violation count
+     */
+    private static function assertRequestDtoHydrationException(RequestDtoHydrationException $e, array $expected): void
     {
-        self::expectException(CircularReferenceException::class);
-        $request = new Request(request: ['prop' => []]);
-        $this->factory->fromRequest(CircularReferencingDto::class, $request);
+        $violations = self::mapViolationsToPath($e->violations);
+        self::assertCount(count($expected), $violations);
+        foreach ($expected as $key => $value) {
+            if (is_int($key)) {
+                $key = $value;
+            }
+
+            self::assertArrayHasKey($key, $violations);
+
+            // Only assert count when array is assoc
+            if (is_int($value)) { // @phpstan-ignore-line
+                self::assertCount($value, $violations[$key]); // @phpstan-ignore-line
+            }
+        }
     }
 
-    public function testFromRequestThrowsCircularReferenceExceptionWhenNestedCircularReferenceIsDetected(): void
+    /**
+     * @param array<string, mixed> $expected
+     */
+    private static function objectMatchesExpectedStructure(object $object, array $expected): void
     {
-        self::expectException(CircularReferenceException::class);
-        $request = new Request(request: ['array' => [[]]]);
-        $this->factory->fromRequest(CircularReferencingDto::class, $request);
+        self::assertSame(
+            $expected,
+            json_decode(json_encode($object) ?: '', true),
+        );
     }
 }

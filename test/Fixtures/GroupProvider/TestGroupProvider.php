@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupProvider;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithGroupSequenceProvider;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\DtoWithGroupSequenceProvider;
 use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\GroupProviderInterface;
 
