@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
-use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
 use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -104,9 +103,9 @@ final class QueryParamTest extends TestCase
 
     public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
     {
-        $request = new Request(["param" => "value"], [], [], [], [], []);
+        $request = new Request(['param' => 'value'], [], [], [], [], []);
 
-        $param = new QueryParam("param");
+        $param = new QueryParam('param');
 
         $this->assertTrue($param->hasValueInRequest($request));
         $this->assertFalse($param->hasValueInRequest(new Request()));
@@ -117,8 +116,8 @@ final class QueryParamTest extends TestCase
         $parent = new QueryParam('parent');
         $child = new QueryParam('child');
         $request = new Request([
-            "parent" => [
-                "child" => "value",
+            'parent' => [
+                'child' => 'value',
             ]
         ]);
 
@@ -133,8 +132,8 @@ final class QueryParamTest extends TestCase
         $parent = new QueryParam('parent');
         $child = new QueryParam('child');
         $request = new Request([
-            "parent" => [
-                ["child" => "value",]
+            'parent' => [
+                ['child' => 'value']
             ]
         ]);
 

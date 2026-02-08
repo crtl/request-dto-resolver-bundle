@@ -20,13 +20,10 @@ use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\Type\UnionType;
-use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RequestDtoParamMetadataFactory
 {
     public function __construct(
-        private readonly ValidatorInterface $validator,
         private readonly DtoReflectionHelper $reflectionHelper,
         private readonly PropertyInfoExtractorInterface $propertyInfoExtractor,
     ) {
@@ -35,16 +32,12 @@ class RequestDtoParamMetadataFactory
     public function getMetadataFor(\ReflectionProperty $property): RequestDtoParamMetadata
     {
         $className = $property->getDeclaringClass()->getName();
-
-        /** @var ClassMetadataInterface $validatorClassMetadata */
-        $validatorClassMetadata = $this->validator->getMetadataFor($className);
-        $constrainedProperties = $validatorClassMetadata->getConstrainedProperties();
-
         $propertyName = $property->getName();
 
         try {
             $type = $this->propertyInfoExtractor->getType($className, $propertyName);
         } catch (\InvalidArgumentException $e) {
+            // @codeCoverageIgnoreStart
             // Compatibility fix because somehow type-info does not support unions with mixed.
             if ('Cannot create union with "mixed" standalone type.' !== $e->getMessage()) {
                 throw $e;
@@ -57,6 +50,7 @@ class RequestDtoParamMetadataFactory
 
             // Defensive fallback for invalid PHPDoc unions involving `mixed`
             $type = Type::mixed();
+            // @codeCoverageIgnoreEnd
         }
 
         $typeDescription = TypeHelper::describe($type);
@@ -91,8 +85,7 @@ class RequestDtoParamMetadataFactory
         $metadata = new RequestDtoParamMetadata(
             $property->getDeclaringClass()->getName(),
             $propertyName,
-            $typeDescription['builtInType'],
-            in_array($propertyName, $constrainedProperties, true),
+            strtolower($typeDescription['builtInType']),
             $definetlyClassString,
             $isArrayType,
             // check if type is nullable and fall back to true when no type specified

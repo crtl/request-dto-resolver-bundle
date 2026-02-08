@@ -64,14 +64,12 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(RequestDtoParamMetadataFactory::class)
         ->args([
-            '$validator' => service('validator'),
             '$reflectionHelper' => service(DtoReflectionHelper::class),
             '$propertyInfoExtractor' => service('crtl_request_dto_resolver_bundle.property_extractor'),
         ]);
 
     $services->set(RequestDtoMetadataFactory::class)
         ->args([
-            '$validator' => service('validator'),
             '$reflectionHelper' => service(DtoReflectionHelper::class),
             '$requestDtoParamMetadataFactory' => service(RequestDtoParamMetadataFactory::class),
             '$cache' => service('cache.system'),

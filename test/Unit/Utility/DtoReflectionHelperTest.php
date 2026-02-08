@@ -42,6 +42,7 @@ final class DtoReflectionHelperTest extends TestCase
             #[BodyParam]
             public ?string $notDto;
 
+            // @phpstan-ignore missingType.property
             public $noType;
         };
 
@@ -155,5 +156,4 @@ final class DtoReflectionHelperTest extends TestCase
         // @phpstan-ignore method.alreadyNarrowedType
         $this->assertFalse($this->helper->isRequestDto(\stdClass::class));
     }
-
 }

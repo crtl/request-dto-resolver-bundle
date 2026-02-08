@@ -18,6 +18,11 @@ use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\NullableType;
 use Symfony\Component\TypeInfo\Type\UnionType;
 
+/**
+ * Internal helper used to process type info {@link Type}.
+ *
+ * @codeCoverageIgnore
+ */
 final class TypeHelper
 {
     /**

@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Reflection;
 
-use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
-use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 
 class RequestDtoMetadata
@@ -23,6 +21,11 @@ class RequestDtoMetadata
      * @var array<string, RequestDtoParamMetadata>
      */
     private array $propertyMetadata = [];
+
+    /**
+     * @var \ReflectionClass<object>|null
+     */
+    private ?\ReflectionClass $reflectionClass = null;
 
     /**
      * @param RequestDtoParamMetadata[] $propertyMetadata
@@ -35,19 +38,12 @@ class RequestDtoMetadata
          */
         private readonly string $className,
 
-        /**
+        /*
          * Property names mapped to metadata
          *
          * @var RequestDtoParamMetadata[]
          */
         array $propertyMetadata,
-
-        /**
-         * Validator metadata of the Request DTO.
-         *
-         * @var ClassMetadataInterface
-         */
-        private readonly ClassMetadataInterface $validatorMetadata,
     ) {
         foreach ($propertyMetadata as $propMetadata) {
             $propertyName = $propMetadata->getPropertyName();
@@ -68,7 +64,6 @@ class RequestDtoMetadata
         return [
             'className' => $this->className,
             'propertyMetadata' => $this->propertyMetadata,
-            'validatorMetadata' => $this->validatorMetadata,
         ];
     }
 
@@ -84,14 +79,7 @@ class RequestDtoMetadata
     public function __unserialize(array $data): void
     {
         $this->className = $data['className'];
-        $this->validatorMetadata = $data['validatorMetadata'];
         $this->propertyMetadata = $data['propertyMetadata'];
-
-        foreach ($this->propertyMetadata as $metadata) {
-            if ($metadata->isConstrained()) {
-                $this->constrainedProperties[$metadata->getPropertyName()] = $metadata;
-            }
-        }
     }
 
     /**
@@ -106,10 +94,14 @@ class RequestDtoMetadata
      * Returns reflection class of request dto.
      *
      * @return \ReflectionClass<object>
+     *
+     * @throws \ReflectionException
      */
     public function getReflectionClass(): \ReflectionClass
     {
-        return new \ReflectionClass($this->className);
+        $this->reflectionClass ??= new \ReflectionClass($this->className);
+
+        return $this->reflectionClass;
     }
 
     public function getPropertyMetadataGenerator(): \Generator
@@ -118,7 +110,6 @@ class RequestDtoMetadata
             yield $name => $property;
         }
     }
-
 
     /**
      * @param mixed ...$args Arguments passed to new instance constructor, only if implemented

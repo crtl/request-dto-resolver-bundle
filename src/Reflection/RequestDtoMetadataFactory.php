@@ -16,15 +16,12 @@ namespace Crtl\RequestDtoResolverBundle\Reflection;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RequestDtoMetadataFactory
 {
     use WithCacheTrait;
 
     public function __construct(
-        private readonly ValidatorInterface $validator,
         private readonly DtoReflectionHelper $reflectionHelper,
         private readonly RequestDtoParamMetadataFactory $requestDtoParamMetadataFactory,
         ?CacheItemPoolInterface $cache = null,
@@ -34,7 +31,7 @@ class RequestDtoMetadataFactory
 
     /**
      * @param class-string $className
-     * @return RequestDtoMetadata
+     *
      * @throws InvalidArgumentException
      * @throws \ReflectionException
      */
@@ -51,10 +48,6 @@ class RequestDtoMetadataFactory
             throw new \LogicException(sprintf('DTO class "%s" must be instantiable.', $reflectionClass->getName()));
         }
 
-        $validatorMetadata = $this->validator->getMetadataFor($className);
-
-        assert($validatorMetadata instanceof ClassMetadataInterface, 'Validator metadata for '.$className.' could not be retrieved');
-
         $properties = $this->reflectionHelper->getAttributedProperties($reflectionClass);
 
         $propertyMetadata = [];
@@ -65,7 +58,6 @@ class RequestDtoMetadataFactory
         $metadata = new RequestDtoMetadata(
             $className,
             $propertyMetadata,
-            $validatorMetadata,
         );
 
         $this->cacheValue($className, $metadata);

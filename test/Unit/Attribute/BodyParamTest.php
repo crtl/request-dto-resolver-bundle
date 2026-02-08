@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
 use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -72,9 +71,9 @@ final class BodyParamTest extends TestCase
 
     public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
     {
-        $request = new Request(request: ["param" => "value"]);
+        $request = new Request(request: ['param' => 'value']);
 
-        $param = new BodyParam("param");
+        $param = new BodyParam('param');
 
         $this->assertTrue($param->hasValueInRequest($request));
         $this->assertFalse($param->hasValueInRequest(new Request()));
@@ -85,8 +84,8 @@ final class BodyParamTest extends TestCase
         $parent = new BodyParam('parent');
         $child = new BodyParam('child');
         $request = new Request(request: [
-            "parent" => [
-                "child" => "value",
+            'parent' => [
+                'child' => 'value',
             ]
         ]);
 
@@ -101,8 +100,8 @@ final class BodyParamTest extends TestCase
         $parent = new BodyParam('parent');
         $child = new BodyParam('child');
         $request = new Request(request: [
-            "parent" => [
-                ["child" => "value",]
+            'parent' => [
+                ['child' => 'value']
             ]
         ]);
 

@@ -23,44 +23,35 @@ final class RequestDtoParamMetadataTest extends TestCase
 {
     public function testGetClassNameReturnsCorrectClassName(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', false);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $this->assertEquals(ParamMetadataDummyDto::class, $metadata->getClassName());
     }
 
     public function testGetPropertyNameReturnsCorrectPropertyName(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', false);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $this->assertEquals('prop', $metadata->getPropertyName());
-    }
-
-    public function testIsConstrainedReturnsCorrectValue(): void
-    {
-        $metadataTrue = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'string', true);
-        $this->assertTrue($metadataTrue->isConstrained());
-
-        $metadataFalse = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'string', false);
-        $this->assertFalse($metadataFalse->isConstrained());
     }
 
     public function testGetNestedDtoClassNameReturnsCorrectClassName(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true, ParamMetadataNestedDto::class);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', ParamMetadataNestedDto::class);
         $this->assertEquals(ParamMetadataNestedDto::class, $metadata->getNestedDtoClassName());
 
-        $metadataNull = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true, null);
+        $metadataNull = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', null);
         $this->assertNull($metadataNull->getNestedDtoClassName());
     }
 
     public function testGetReflectionClassReturnsCorrectReflectionClass(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', false);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $reflection = $metadata->getReflectionClass();
         $this->assertEquals(ParamMetadataDummyDto::class, $reflection->getName());
     }
 
     public function testGetReflectionPropertyReturnsCorrectReflectionProperty(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $reflection = $metadata->getReflectionProperty();
         $this->assertEquals('prop', $reflection->getName());
         $this->assertEquals(ParamMetadataDummyDto::class, $reflection->getDeclaringClass()->getName());
@@ -68,7 +59,7 @@ final class RequestDtoParamMetadataTest extends TestCase
 
     public function testGetAttributeReturnsAbstractParamAttribute(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $attribute = $metadata->getAttribute();
         $this->assertInstanceOf(QueryParam::class, $attribute);
         $this->assertEquals('prop', $attribute->getName());
@@ -76,7 +67,7 @@ final class RequestDtoParamMetadataTest extends TestCase
 
     public function testGetAttributeSetsParentAttributeWhenProvided(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $parent = new BodyParam();
         $attribute = $metadata->getAttribute($parent);
 
@@ -87,7 +78,7 @@ final class RequestDtoParamMetadataTest extends TestCase
 
     public function testGetAttributeThrowsLogicExceptionWhenAttributeIsMissing(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'noAttributeProp', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'noAttributeProp', 'mixed');
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Property Crtl\RequestDtoResolverBundle\Test\Unit\Reflection\ParamMetadataDummyDto::$noAttributeProp is missing an AbstractParam attribute.');
         $metadata->getAttribute();
@@ -95,7 +86,7 @@ final class RequestDtoParamMetadataTest extends TestCase
 
     public function testGetAttributeTriggersWarningWhenMultipleAttributesArePresent(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'multipleAttributesProp', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'multipleAttributesProp', 'mixed');
 
         $warningTriggered = false;
         set_error_handler(function ($errno, $errstr) use (&$warningTriggered) {
@@ -117,7 +108,7 @@ final class RequestDtoParamMetadataTest extends TestCase
 
     public function testSetValueSetsPropertyValueOnDto(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         $dto = new ParamMetadataDummyDto();
         $metadata->setValue($dto, 'new value');
         $this->assertEquals('new value', $dto->prop);
@@ -125,10 +116,10 @@ final class RequestDtoParamMetadataTest extends TestCase
 
     public function testIsNullable(): void
     {
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed');
         self::assertFalse($metadata->isNullable());
 
-        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', true, isNullable: true);
+        $metadata = new RequestDtoParamMetadata(ParamMetadataDummyDto::class, 'prop', 'mixed', isNullable: true);
         self::assertTrue($metadata->isNullable());
     }
 
@@ -138,7 +129,6 @@ final class RequestDtoParamMetadataTest extends TestCase
             ParamMetadataDummyDto::class,
             'prop',
             'string',
-            true,
             ParamMetadataNestedDto::class,
             true,
             true,
@@ -151,7 +141,6 @@ final class RequestDtoParamMetadataTest extends TestCase
         $this->assertEquals($metadata->getClassName(), $unserialized->getClassName());
         $this->assertEquals($metadata->getPropertyName(), $unserialized->getPropertyName());
         $this->assertEquals($metadata->getBuiltinType(), $unserialized->getBuiltinType());
-        $this->assertEquals($metadata->isConstrained(), $unserialized->isConstrained());
         $this->assertEquals($metadata->getNestedDtoClassName(), $unserialized->getNestedDtoClassName());
         $this->assertEquals($metadata->isNestedDtoArray(), $unserialized->isNestedDtoArray());
         $this->assertEquals($metadata->isNullable(), $unserialized->isNullable());
@@ -163,7 +152,6 @@ final class RequestDtoParamMetadataTest extends TestCase
             ParamMetadataDummyDto::class,
             'withDefaultValue',
             'string',
-            false,
             null,
             false,
             false,
@@ -175,7 +163,6 @@ final class RequestDtoParamMetadataTest extends TestCase
             ParamMetadataDummyDto::class,
             'prop',
             'string',
-            false,
             null,
             false,
             false,
@@ -189,19 +176,17 @@ final class RequestDtoParamMetadataTest extends TestCase
             ParamMetadataDummyDto::class,
             'withDefaultValue',
             'string',
-            false,
             null,
             false,
             false,
         );
 
-        self::assertSame("string", $metadata->getDefaultValue());
+        self::assertSame('string', $metadata->getDefaultValue());
 
         $metadata = new RequestDtoParamMetadata(
             ParamMetadataDummyDto::class,
             'prop',
             'string',
-            false,
             null,
             false,
             false,
@@ -221,7 +206,7 @@ final class ParamMetadataDummyDto
     #[BodyParam]
     public string $multipleAttributesProp;
 
-    public string $withDefaultValue = "string";
+    public string $withDefaultValue = 'string';
 }
 
 final class ParamMetadataNestedDto

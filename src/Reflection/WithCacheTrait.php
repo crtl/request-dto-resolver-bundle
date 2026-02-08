@@ -15,6 +15,7 @@ namespace Crtl\RequestDtoResolverBundle\Reflection;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 
 /**
  * Traits to help implement caching.
@@ -43,8 +44,6 @@ trait WithCacheTrait
 
     /**
      * @param class-string $className
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     private function getCacheItem(string $className): ?CacheItemInterface
     {
@@ -53,7 +52,11 @@ trait WithCacheTrait
         }
         if (!array_key_exists($className, $this->cacheItems)) {
             $cacheKey = $this->getCacheKey($className);
-            $cacheItem = $this->cache->getItem($cacheKey);
+            try {
+                $cacheItem = $this->cache->getItem($cacheKey);
+            } catch (InvalidArgumentException) {
+                $cacheItem = null;
+            }
             $this->cacheItems[$className] = $cacheItem;
         }
 
@@ -62,12 +65,14 @@ trait WithCacheTrait
 
     /**
      * @param class-string $className
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     private function getCachedValue(string $className): ?object
     {
-        $cacheItem = $this->getCacheItem($className);
+        try {
+            $cacheItem = $this->getCacheItem($className);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
 
         if ($cacheItem?->isHit()) {
             return $cacheItem->get();
@@ -79,7 +84,7 @@ trait WithCacheTrait
     /**
      * @param class-string $className
      *
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function cacheValue(string $className, object $metadata): void
     {

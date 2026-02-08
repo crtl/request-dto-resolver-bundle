@@ -14,15 +14,14 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Reflection;
 
 use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
-use Symfony\Component\TypeInfo\Type;
 
 class RequestDtoParamMetadata
 {
     /**
-     * @var \ReflectionClass<object>
+     * @var \ReflectionClass<object>|null
      */
-    private \ReflectionClass $reflectionClass;
-    private \ReflectionProperty $reflectionProperty;
+    private ?\ReflectionClass $reflectionClass = null;
+    private ?\ReflectionProperty $reflectionProperty = null;
 
     public function __construct(
         /**
@@ -60,13 +59,6 @@ class RequestDtoParamMetadata
         private readonly string $builtInType,
 
         /**
-         * Whether the property is constrained by validation.
-         *
-         * @var bool
-         */
-        private readonly bool $isConstrained,
-
-        /**
          * Typehint classname of nested dto class or null if not a dto.
          *
          * @var class-string|null
@@ -86,11 +78,6 @@ class RequestDtoParamMetadata
     public function getBuiltinType(): string
     {
         return $this->builtInType;
-    }
-
-    public function isConstrained(): bool
-    {
-        return $this->isConstrained;
     }
 
     public function isNestedDtoArray(): bool
@@ -139,24 +126,25 @@ class RequestDtoParamMetadata
      */
     public function getReflectionClass(): \ReflectionClass
     {
-        if (!isset($this->reflectionClass)) {
-            $this->reflectionClass = new \ReflectionClass($this->className);
-        }
+        $this->reflectionClass ??= new \ReflectionClass($this->className);
 
         return $this->reflectionClass;
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function getReflectionProperty(): \ReflectionProperty
     {
-        if (!isset($this->reflectionProperty)) {
-            $this->reflectionProperty = $this->getReflectionClass()->getProperty($this->propertyName);
-        }
+        $this->reflectionProperty ??= $this->getReflectionClass()->getProperty($this->propertyName);
 
         return $this->reflectionProperty;
     }
 
     /**
      * Returns the AbstractParam attribute for this property, optionally with a parent.
+     *
+     * @throws \ReflectionException
      */
     public function getAttribute(?AbstractParam $parent = null): AbstractParam
     {
@@ -196,7 +184,6 @@ class RequestDtoParamMetadata
             'className' => $this->className,
             'propertyName' => $this->propertyName,
             'builtInType' => $this->builtInType,
-            'isConstrained' => $this->isConstrained,
             'nestedDtoClassName' => $this->nestedDtoClassName,
             'isNestedDtoArray' => $this->isNestedDtoArray,
             'isNullable' => $this->isNullable,
@@ -219,7 +206,6 @@ class RequestDtoParamMetadata
         $this->className = $data['className'];
         $this->propertyName = $data['propertyName'];
         $this->builtInType = $data['builtInType'];
-        $this->isConstrained = $data['isConstrained'];
         $this->nestedDtoClassName = $data['nestedDtoClassName'];
         $this->isNestedDtoArray = $data['isNestedDtoArray'];
         $this->isNullable = $data['isNullable'];

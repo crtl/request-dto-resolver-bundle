@@ -18,23 +18,17 @@ use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadata;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Validator\Constraints\GroupSequence;
-use Symfony\Component\Validator\Mapping\ClassMetadata;
-use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 
 final class RequestDtoMetadataTest extends TestCase
 {
     public function testMetadataAccessorsReturnCorrectValues(): void
     {
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'string', false),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'string', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'string'),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'string'),
             ],
-            $validatorMetadata,
         );
 
         $this->assertCount(2, iterator_to_array($metadata->getPropertyMetadataGenerator()));
@@ -42,10 +36,9 @@ final class RequestDtoMetadataTest extends TestCase
         $this->assertEquals(DummyRequestDto::class, $metadata->getReflectionClass()->getName());
     }
 
-
     public function testNewInstancePassesArgumentsToDTOConstructorCorrectly(): void
     {
-        $metadata = new RequestDtoMetadata(RequestDtoWithConstructor::class, [], $this->createMock(ClassMetadataInterface::class));
+        $metadata = new RequestDtoMetadata(RequestDtoWithConstructor::class, []);
         $instance = $metadata->newInstance('test-param', 1, 2);
         $this->assertInstanceOf(RequestDtoWithConstructor::class, $instance);
 
@@ -54,14 +47,12 @@ final class RequestDtoMetadataTest extends TestCase
 
     public function testMetadataCanBeSerializedAndUnserializedPreservingAllProperties(): void
     {
-        $validatorMetadata = new ClassMetadata(DummyRequestDto::class);
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed'),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed'),
             ],
-            $validatorMetadata,
         );
 
         // Access properties to populate internal state if any
@@ -74,7 +65,6 @@ final class RequestDtoMetadataTest extends TestCase
         $this->assertEquals($metadata->getReflectionClass()->getName(), $unserialized->getReflectionClass()->getName());
         $this->assertCount(2, iterator_to_array($unserialized->getPropertyMetadataGenerator()));
     }
-
 }
 
 final class DummyRequestDto

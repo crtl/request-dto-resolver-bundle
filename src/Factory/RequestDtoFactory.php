@@ -216,10 +216,9 @@ class RequestDtoFactory
 
                 $resultArray = [];
                 foreach ($valueArray as $i => $nestedValue) {
-                    /** @var AbstractParam $nestedAttr */
-                    $nestedAttr = clone $attr;
-                    if ($isArray && $nestedAttr instanceof AbstractNestedParam) {
-                        $nestedAttr->setIndex($i);
+                    if ($isArray && $attr instanceof AbstractNestedParam) {
+                        $attr = clone $attr;
+                        $attr->setIndex($i);
                     }
 
                     try {
@@ -230,7 +229,7 @@ class RequestDtoFactory
                                 : $nestedValue,
                             $valueProvider,
                             $valueChecker,
-                            $nestedAttr,
+                            $attr,
                             $nestedMetadata,
                             $stack,
                         );

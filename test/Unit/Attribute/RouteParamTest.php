@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
-use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
 use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;

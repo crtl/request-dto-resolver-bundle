@@ -23,12 +23,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class RequestDtoMetadataFactoryTest extends TestCase
 {
-    private ValidatorInterface&MockObject $validator;
-
     private DtoReflectionHelper&MockObject $reflectionHelper;
 
     private RequestDtoParamMetadataFactory&MockObject $paramMetadataFactory;
@@ -37,21 +34,15 @@ final class RequestDtoMetadataFactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->validator = $this->createMock(ValidatorInterface::class);
         $this->reflectionHelper = $this->createMock(DtoReflectionHelper::class);
         $this->paramMetadataFactory = $this->createMock(RequestDtoParamMetadataFactory::class);
-        $this->factory = new RequestDtoMetadataFactory($this->validator, $this->reflectionHelper, $this->paramMetadataFactory);
+        $this->factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory);
     }
 
     public function testGetMetadataForReturnsRequestDtoMetadataForGivenClassName(): void
     {
         $className = DummyDto::class;
         $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-
-        $this->validator->expects($this->once())
-            ->method('getMetadataFor')
-            ->with($className)
-            ->willReturn($validatorMetadata);
 
         $prop1 = new \ReflectionProperty($className, 'prop1');
         $prop2 = new \ReflectionProperty($className, 'prop2');
@@ -63,7 +54,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $this->paramMetadataFactory->expects($this->exactly(2))
             ->method('getMetadataFor')
             ->willReturnCallback(function (\ReflectionProperty $prop) {
-                return new RequestDtoParamMetadata($prop->getDeclaringClass()->getName(), $prop->getName(), 'mixed', 'prop1' === $prop->getName());
+                return new RequestDtoParamMetadata($prop->getDeclaringClass()->getName(), $prop->getName(), 'mixed');
             });
 
         $metadata = $this->factory->getMetadataFor($className);
@@ -78,7 +69,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $cacheItem = $this->createMock(CacheItemInterface::class);
         $cachedMetadata = $this->createMock(RequestDtoMetadata::class);
 
-        $factory = new RequestDtoMetadataFactory($this->validator, $this->reflectionHelper, $this->paramMetadataFactory, $cache);
+        $factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory, $cache);
 
         $className = DummyDto::class;
         $cacheKey = $factory->getCacheKey($className); // str_replace('\\', '_', $className).'_'.str_replace('\\', '_', RequestDtoMetadata::class);
@@ -96,8 +87,6 @@ final class RequestDtoMetadataFactoryTest extends TestCase
             ->method('get')
             ->willReturn($cachedMetadata);
 
-        $this->validator->expects($this->never())->method('getMetadataFor');
-
         $metadata = $factory->getMetadataFor($className);
 
         $this->assertSame($cachedMetadata, $metadata);
@@ -108,7 +97,7 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $cache = $this->createMock(CacheItemPoolInterface::class);
         $cacheItem = $this->createMock(CacheItemInterface::class);
 
-        $factory = new RequestDtoMetadataFactory($this->validator, $this->reflectionHelper, $this->paramMetadataFactory, $cache);
+        $factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory, $cache);
 
         $className = DummyDto::class;
         $cacheKey = $factory->getCacheKey($className); // str_replace('\\', '_', $className).'_'.str_replace('\\', '_', RequestDtoMetadata::class);
@@ -121,13 +110,6 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $cacheItem->expects($this->once())
             ->method('isHit')
             ->willReturn(false);
-
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-
-        $this->validator->expects($this->once())
-            ->method('getMetadataFor')
-            ->with($className)
-            ->willReturn($validatorMetadata);
 
         $this->reflectionHelper->expects($this->once())
             ->method('getAttributedProperties')
@@ -145,9 +127,6 @@ final class RequestDtoMetadataFactoryTest extends TestCase
     public function testGetMetadataForThrowsRuntimeExceptionWhenUnsupportedTypeIsEncountered(): void
     {
         $className = DummyDto::class;
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-
-        $this->validator->method('getMetadataFor')->willReturn($validatorMetadata);
 
         $prop1 = new \ReflectionProperty($className, 'prop1');
 
@@ -182,9 +161,9 @@ final class DummyDto
     public string $prop2;
 }
 
-final class PrivateConstructor {
+final class PrivateConstructor
+{
     private function __construct()
     {
-
     }
 }
