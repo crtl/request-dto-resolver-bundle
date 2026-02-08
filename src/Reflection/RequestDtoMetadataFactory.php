@@ -15,7 +15,6 @@ namespace Crtl\RequestDtoResolverBundle\Reflection;
 
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\InvalidArgumentException;
 
 class RequestDtoMetadataFactory
 {
@@ -32,7 +31,6 @@ class RequestDtoMetadataFactory
     /**
      * @param class-string $className
      *
-     * @throws InvalidArgumentException
      * @throws \ReflectionException
      */
     public function getMetadataFor(string $className): RequestDtoMetadata

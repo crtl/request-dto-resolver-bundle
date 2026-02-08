@@ -21,6 +21,7 @@ use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithGroupSequenceProvider;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithNestedDtoArray;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupSequenceProviderDTO;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy\ExampleDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\NonStrictTypeConflictingDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\TypeConflictingDto;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -626,6 +627,49 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         self::assertSame(400, $response->getStatusCode());
         $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertValidationErrorResponse($response, ['arrayProperty', 'intProperty', 'floatProperty', 'boolProperty', 'stringProperty']);
+    }
+
+    public function testValuesAreCoercedDuringAssignmentWhenDtoIsNotStrict(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Empty request
+        $request = Request::create(
+            uri: '/_test_mixed',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+            ],
+            content: json_encode([
+                'intProperty' => '1',
+                'floatProperty' => '1.2',
+                'boolProperty' => '0',
+                'stringProperty' => 1
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(NonStrictTypeConflictingDto $dto): JsonResponse
+            {
+                return new JsonResponse(get_object_vars($dto));
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertArrayHasKey("intProperty", $data);
+        self::assertSame(1, $data["intProperty"]);
+        self::assertArrayHasKey("floatProperty", $data);
+        self::assertSame(1.2, $data["floatProperty"]);
+        self::assertArrayHasKey("boolProperty", $data);
+        self::assertSame(false, $data["boolProperty"]);
+        self::assertArrayHasKey("stringProperty", $data);
+        self::assertSame("1", $data["stringProperty"]);
     }
 
     /**

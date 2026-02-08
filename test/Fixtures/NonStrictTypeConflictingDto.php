@@ -19,8 +19,8 @@ use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 /**
  * Dto with strict typed properties but not equivalent validation attributes to ensure data is correct.
  */
-#[RequestDto]
-class TypeConflictingDto
+#[RequestDto(strict: false)]
+class NonStrictTypeConflictingDto
 {
     #[BodyParam]
     public int $intProperty;

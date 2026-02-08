@@ -22,4 +22,14 @@ use Crtl\RequestDtoResolverBundle\RequestDtoResolver;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 class RequestDto
 {
+    public function __construct(
+        /**
+         * Whether the DTO should be hydrated in strict mode.
+         *
+         * By defaults properties may cause type constraint violations when the required types mismatches with input.
+         * If you want to attempt to coerce values instead pass `false` instead.
+         */
+        public readonly bool $strict = true,
+    ) {
+    }
 }

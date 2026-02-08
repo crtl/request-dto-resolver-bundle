@@ -262,7 +262,7 @@ class RequestDtoFactory
             }
 
             try {
-                $this->assignProperty($object, $propertyMetadata, $value);
+                $this->assignProperty($object, $metadata, $propertyMetadata, $value);
             } catch (PropertyHydrationException $e) {
                 $violation = $this->createTypeErrorViolation(
                     $e->typeError,
@@ -288,14 +288,15 @@ class RequestDtoFactory
      */
     private function assignProperty(
         object $object,
-        RequestDtoParamMetadata $metadata,
+        RequestDtoMetadata $classMetadata,
+        RequestDtoParamMetadata $propertyMetadata,
         mixed $value,
     ): void {
         try {
-            $propertyName = $metadata->getPropertyName();
-            $object->$propertyName = $value;
+            $propertyName = $propertyMetadata->getPropertyName();
+            $classMetadata->assignPropertyValue($object, $propertyName, $value);
         } catch (\TypeError $e) {
-            throw new PropertyHydrationException(get_class($object), $metadata->getPropertyName(), $value, $e);
+            throw new PropertyHydrationException(get_class($object), $propertyMetadata->getPropertyName(), $value, $e);
         }
     }
 

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Reflection;
 
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 
 class RequestDtoMetadata
@@ -108,6 +109,31 @@ class RequestDtoMetadata
     {
         foreach ($this->propertyMetadata as $name => $property) {
             yield $name => $property;
+        }
+    }
+
+    /**
+     * @throws \ReflectionException
+     * @throws \TypeError
+     */
+    public function assignPropertyValue(object $object, string $property, mixed $value): void
+    {
+        $reflectionClass = new \ReflectionClass($object);
+        $attrs = $reflectionClass->getAttributes(RequestDto::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+        $strict = false;
+
+        if (count($attrs) > 0) {
+            /** @var RequestDto $attr */
+            $attr = $attrs[0]->newInstance();
+            $strict = $attr->strict;
+        }
+
+        if ($strict) {
+            $object->$property = $value;
+        } else {
+            $reflectionClass->getProperty($property)
+                ->setValue($object, $value);
         }
     }
 
