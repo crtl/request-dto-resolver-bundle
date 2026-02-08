@@ -29,7 +29,7 @@ final class FileParamTest extends TestCase
         $paramName = 'test_file';
         $uploadedFile = $this->createMock(UploadedFile::class);
 
-        $request = new Request([], [], [], [], [$paramName => $uploadedFile]);
+        $request = new Request(files: [$paramName => $uploadedFile]);
 
         $fileParam = new FileParam($paramName);
 
@@ -45,5 +45,18 @@ final class FileParamTest extends TestCase
         $fileParam = new FileParam($paramName);
 
         $this->assertNull($fileParam->getValueFromRequest($request));
+    }
+
+    public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
+    {
+        $paramName = 'test_file';
+        $uploadedFile = $this->createMock(UploadedFile::class);
+
+        $request = new Request(files: [$paramName => $uploadedFile]);
+
+        $fileParam = new FileParam($paramName);
+
+        $this->assertTrue($fileParam->hasValueInRequest($request));
+        $this->assertFalse($fileParam->hasValueInRequest(new Request()));
     }
 }

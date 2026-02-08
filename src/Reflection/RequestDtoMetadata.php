@@ -25,11 +25,6 @@ class RequestDtoMetadata
     private array $propertyMetadata = [];
 
     /**
-     * @var array<string, RequestDtoParamMetadata>
-     */
-    private array $constrainedProperties = [];
-
-    /**
      * @param RequestDtoParamMetadata[] $propertyMetadata
      */
     public function __construct(
@@ -40,7 +35,7 @@ class RequestDtoMetadata
          */
         private readonly string $className,
 
-        /*
+        /**
          * Property names mapped to metadata
          *
          * @var RequestDtoParamMetadata[]
@@ -57,10 +52,6 @@ class RequestDtoMetadata
         foreach ($propertyMetadata as $propMetadata) {
             $propertyName = $propMetadata->getPropertyName();
             $this->propertyMetadata[$propertyName] = $propMetadata;
-
-            if ($propMetadata->isConstrained()) {
-                $this->constrainedProperties[$propertyName] = $propMetadata;
-            }
         }
     }
 
@@ -121,19 +112,6 @@ class RequestDtoMetadata
         return new \ReflectionClass($this->className);
     }
 
-    /**
-     * @return \Symfony\Component\Validator\Constraint[]
-     */
-    public function getClassConstraints(): array
-    {
-        return $this->validatorMetadata->getConstraints();
-    }
-
-    public function getAbstractParamAttributeFromProperty(\ReflectionProperty $property, ?AbstractParam $parent = null): ?AbstractParam
-    {
-        return $this->propertyMetadata[$property->getName()]->getAttribute($parent);
-    }
-
     public function getPropertyMetadataGenerator(): \Generator
     {
         foreach ($this->propertyMetadata as $name => $property) {
@@ -141,32 +119,6 @@ class RequestDtoMetadata
         }
     }
 
-    public function getValidatorMetadata(): ClassMetadataInterface
-    {
-        return $this->validatorMetadata;
-    }
-
-    /**
-     * @return array<string|string[]|GroupSequence>|null
-     */
-    public function getGroupSequence(): ?array
-    {
-        $sequence = $this->validatorMetadata->getGroupSequence();
-        if ($sequence instanceof GroupSequence) {
-            return $sequence->groups;
-        }
-
-        return $sequence;
-    }
-
-    public function isConstrainedProperty(string|\ReflectionProperty $propertyName): bool
-    {
-        if ($propertyName instanceof \ReflectionProperty) {
-            $propertyName = $propertyName->getName();
-        }
-
-        return array_key_exists($propertyName, $this->constrainedProperties);
-    }
 
     /**
      * @param mixed ...$args Arguments passed to new instance constructor, only if implemented

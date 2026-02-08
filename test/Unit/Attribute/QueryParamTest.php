@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Unit\Attribute;
 
+use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
 use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -99,5 +100,48 @@ final class QueryParamTest extends TestCase
         $request = new Request(['ids' => ['1', '2']]);
         $queryParam = new QueryParam('ids', 'int');
         $this->assertSame(['1', '2'], $queryParam->getValueFromRequest($request));
+    }
+
+    public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
+    {
+        $request = new Request(["param" => "value"], [], [], [], [], []);
+
+        $param = new QueryParam("param");
+
+        $this->assertTrue($param->hasValueInRequest($request));
+        $this->assertFalse($param->hasValueInRequest(new Request()));
+    }
+
+    public function testHasValueInRequestWithNestedParam(): void
+    {
+        $parent = new QueryParam('parent');
+        $child = new QueryParam('child');
+        $request = new Request([
+            "parent" => [
+                "child" => "value",
+            ]
+        ]);
+
+        $child->setParent($parent);
+
+        $this->assertTrue($child->hasValueInRequest($request));
+        $this->assertFalse($child->hasValueInRequest(new Request()));
+    }
+
+    public function testHasValueInRequestWithNestedArrayParam(): void
+    {
+        $parent = new QueryParam('parent');
+        $child = new QueryParam('child');
+        $request = new Request([
+            "parent" => [
+                ["child" => "value",]
+            ]
+        ]);
+
+        $parent->setIndex(0);
+        $child->setParent($parent);
+
+        $this->assertTrue($child->hasValueInRequest($request));
+        $this->assertFalse($child->hasValueInRequest(new Request()));
     }
 }

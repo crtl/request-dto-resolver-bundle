@@ -70,9 +70,6 @@ final class RequestDtoMetadataFactoryTest extends TestCase
 
         $this->assertEquals($className, $metadata->getReflectionClass()->getName());
         $this->assertEquals(['prop1', 'prop2'], array_keys(iterator_to_array($metadata->getPropertyMetadataGenerator())));
-        $this->assertTrue($metadata->isConstrainedProperty('prop1'));
-        $this->assertFalse($metadata->isConstrainedProperty('prop2'));
-        $this->assertSame($validatorMetadata, $metadata->getValidatorMetadata());
     }
 
     public function testGetMetadataForReturnsCachedMetadataOnCacheHit(): void
@@ -170,6 +167,12 @@ final class RequestDtoMetadataFactoryTest extends TestCase
 
         $this->factory->getMetadataFor($className);
     }
+
+    public function testGetMetadataForThrowsLogicExceptionWhenClassIsNotInstantiable(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->factory->getMetadataFor(PrivateConstructor::class);
+    }
 }
 
 final class DummyDto
@@ -177,4 +180,11 @@ final class DummyDto
     public string $prop1;
 
     public string $prop2;
+}
+
+final class PrivateConstructor {
+    private function __construct()
+    {
+
+    }
 }

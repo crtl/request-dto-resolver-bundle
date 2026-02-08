@@ -26,8 +26,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class RequestDtoParamMetadataFactory
 {
     public function __construct(
-        private ValidatorInterface $validator,
-        private DtoReflectionHelper $reflectionHelper,
+        private readonly ValidatorInterface $validator,
+        private readonly DtoReflectionHelper $reflectionHelper,
         private readonly PropertyInfoExtractorInterface $propertyInfoExtractor,
     ) {
     }
@@ -35,7 +35,6 @@ class RequestDtoParamMetadataFactory
     public function getMetadataFor(\ReflectionProperty $property): RequestDtoParamMetadata
     {
         $className = $property->getDeclaringClass()->getName();
-        $cacheKey = $className.'.'.$property->getName();
 
         /** @var ClassMetadataInterface $validatorClassMetadata */
         $validatorClassMetadata = $this->validator->getMetadataFor($className);

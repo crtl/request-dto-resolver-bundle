@@ -41,6 +41,8 @@ final class DtoReflectionHelperTest extends TestCase
 
             #[BodyParam]
             public ?string $notDto;
+
+            public $noType;
         };
 
         $reflectionClass = new \ReflectionClass($class);
@@ -51,6 +53,10 @@ final class DtoReflectionHelperTest extends TestCase
         $this->assertEquals(NestedChildDTO::class, $type->getName());
 
         $property = $reflectionClass->getProperty('notDto');
+        $type = $this->helper->getDtoClassNameFromReflectionProperty($property);
+        $this->assertNull($type);
+
+        $property = $reflectionClass->getProperty('noType');
         $type = $this->helper->getDtoClassNameFromReflectionProperty($property);
         $this->assertNull($type);
     }
@@ -149,4 +155,5 @@ final class DtoReflectionHelperTest extends TestCase
         // @phpstan-ignore method.alreadyNarrowedType
         $this->assertFalse($this->helper->isRequestDto(\stdClass::class));
     }
+
 }

@@ -15,6 +15,7 @@ namespace Crtl\RequestDtoResolverBundle\Reflection;
 
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -33,6 +34,9 @@ class RequestDtoMetadataFactory
 
     /**
      * @param class-string $className
+     * @return RequestDtoMetadata
+     * @throws InvalidArgumentException
+     * @throws \ReflectionException
      */
     public function getMetadataFor(string $className): RequestDtoMetadata
     {
@@ -58,21 +62,9 @@ class RequestDtoMetadataFactory
             $propertyMetadata[] = $this->requestDtoParamMetadataFactory->getMetadataFor($property);
         }
 
-        //        // TODO: Think about a better way of liniting because this only works on the first level
-        //        // due to nested metadata only being instantiated on hydration.
-        //        foreach ($properties as $property) {
-        //            // Ensure no union or intersection types are used for nested dto params
-        //            $this->reflectionHelper->getDtoClassNameFromReflectionProperty($property);
-        //        }
-
-        //        $constrainedPropertyNames = $validatorMetadata->getConstrainedProperties();
-
-        //        $propertyNames = array_map(fn (\ReflectionProperty $prop) => $prop->getName(), $properties);
         $metadata = new RequestDtoMetadata(
             $className,
             $propertyMetadata,
-            //            $propertyNames,
-            //            array_intersect($constrainedPropertyNames, $propertyNames),
             $validatorMetadata,
         );
 

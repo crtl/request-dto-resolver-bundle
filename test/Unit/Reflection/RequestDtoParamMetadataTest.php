@@ -156,6 +156,58 @@ final class RequestDtoParamMetadataTest extends TestCase
         $this->assertEquals($metadata->isNestedDtoArray(), $unserialized->isNestedDtoArray());
         $this->assertEquals($metadata->isNullable(), $unserialized->isNullable());
     }
+
+    public function testHasDefaultValueReturnsTrueWhenPropertyHasDefaultValue(): void
+    {
+        $metadata = new RequestDtoParamMetadata(
+            ParamMetadataDummyDto::class,
+            'withDefaultValue',
+            'string',
+            false,
+            null,
+            false,
+            false,
+        );
+
+        self::assertTrue($metadata->hasDefaultValue());
+
+        $metadata = new RequestDtoParamMetadata(
+            ParamMetadataDummyDto::class,
+            'prop',
+            'string',
+            false,
+            null,
+            false,
+            false,
+        );
+        self::assertFalse($metadata->hasDefaultValue());
+    }
+
+    public function testGetDefaultValueReturnsDefaultValue(): void
+    {
+        $metadata = new RequestDtoParamMetadata(
+            ParamMetadataDummyDto::class,
+            'withDefaultValue',
+            'string',
+            false,
+            null,
+            false,
+            false,
+        );
+
+        self::assertSame("string", $metadata->getDefaultValue());
+
+        $metadata = new RequestDtoParamMetadata(
+            ParamMetadataDummyDto::class,
+            'prop',
+            'string',
+            false,
+            null,
+            false,
+            false,
+        );
+        self::assertNull($metadata->getDefaultValue());
+    }
 }
 
 final class ParamMetadataDummyDto
@@ -168,6 +220,8 @@ final class ParamMetadataDummyDto
     #[QueryParam]
     #[BodyParam]
     public string $multipleAttributesProp;
+
+    public string $withDefaultValue = "string";
 }
 
 final class ParamMetadataNestedDto

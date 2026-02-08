@@ -16,6 +16,9 @@ namespace Crtl\RequestDtoResolverBundle\Utility;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 interface DtoInstanceBagInterface
 {
     /**

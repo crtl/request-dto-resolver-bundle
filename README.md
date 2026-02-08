@@ -58,7 +58,7 @@ Use parameter attributes to map request data to properties.
 > **The attribute is required to identify which controller arguments should be resolved and validated.**
 
 
-### 1.1 Strictly typed DTO
+#### 1.1 Strictly typed DTO
 
 ```php
 namespace App\DTO;
@@ -74,63 +74,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[RequestDto]
-class ExampleDTO
-{
-    #[BodyParam, Assert\NotBlank, Assert\Type("string")]
-    public string $someParam;
-
-    #[FileParam, Assert\NotNull]
-    public ?UploadedFile $file;
-
-    #[HeaderParam("Content-Type"), Assert\NotBlank]
-    public string $contentType;
-
-    #[QueryParam(name: "age", transformType: "int"), Assert\GreaterThan(18)]
-    public int $age;
-
-    #[RouteParam, Assert\NotBlank]
-    public string $id;
-
-    // Nested DTOs are supported for BodyParam and QueryParam
-    // Do NOT use Assert\Valid here
-    #[BodyParam("nested")]
-    public ?NestedRequestDTO $nestedBodyDto;
-
-    // Optional constructor receiving the Request
-    // Properties are not initialized at this stage
-    public function __construct(Request $request)
-    {
-    }
-}
-```
-
-> **Any type mismatches will trigger a constraint violation and thus a `RequestValidationException` is thrown.**
-
-### 1.2 Mixed typed DTO
-```php
-namespace App\DTO;
-
-use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
-use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
-use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
-use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
-use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
-use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Validator\Constraints as Assert;
-
-#[RequestDto]
-class ExampleDTO
+class ExampleDto
 {
     #[BodyParam, Assert\NotBlank, Assert\Type("string")]
     public string $someParam;
     
-    /**
-     * @var string 
-     */
      #[BodyParam, Assert\NotBlank, Assert\Type("string")]
-    public mixed $withDefaultValue = "My default value";
+    public string $withDefaultValue = "My default value";
+    
+    #[BodyParam]
+    public ?string $nullable;
 
     #[FileParam, Assert\NotNull]
     public ?UploadedFile $file;
@@ -141,7 +94,7 @@ class ExampleDTO
     // Because query params are all strings by default
     // we can provide a type transformer to transform its type.
     // values are converted using filter_var with the corrosponding FILTER_VALIDATE_* option.
-    #[QueryParam(name: "age", transformType: "int"), Assert\GreaterThan(18)]
+    #[QueryParam(transformType: "int"), Assert\GreaterThan(18)]
     public int $age;
     
     // Or provide a custom callable to tranform type
@@ -171,12 +124,69 @@ class ExampleDTO
 }
 ```
 
+> **Any type mismatches will trigger a constraint violation and thus a `RequestValidationException` is thrown.**
+
+#### 1.2 Mixed typed DTO
+```php
+namespace App\DTO;
+
+use Crtl\RequestDtoResolverBundle\Attribute\BodyParam;
+use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
+use Crtl\RequestDtoResolverBundle\Attribute\HeaderParam;
+use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RouteParam;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Constraints as Assert;
+
+#[RequestDto]
+class ExampleDto
+{
+    /**
+     * @var string
+     */
+    #[BodyParam, Assert\NotBlank]
+    public mixed $contentType;
+}
+```
+
+### 1.3 Important notes about DTO hydration
+
+- **Uninitialized properties**  
+  If a request does not contain data for a property, that property will remain uninitialized.  
+  To guarantee initialization, either:
+    - provide a default value, or
+    - add appropriate validation constraints (e.g. `NotNull`, `NotBlank`).
+
+- **Hydration from arrays**  
+  When a DTO is manually hydrated from an array using `RequestDtoFactory::fromArray()`, the configured `AbstractParam::$name` is ignored.  
+  In this case, the DTO’s property names are always used as the source keys.
+
+- **Validation still runs in strict mode**  
+  Even if some properties cannot be assigned due to type mismatches in strict typing mode, the DTO is still fully validated using Symfony’s validator.  
+  Any resulting violations will lead to a `RequestValidationException`.
+
+### 1.4 Validation group sequences
+
+All Symfony validation group sequence variants are supported.
+
+Because request data can never be trusted, **DTO properties may be uninitialized regardless of whether strict typing is used or not**.  
+Missing or invalid input can prevent a property from being assigned during hydration.
+
+When using validation group sequences, you must therefore ensure that properties are accessed safely by:
+- checking initialization with `isset()`, or
+- using reflection-based checks when necessary.
+
+Failing to do so may lead to runtime errors before later validation groups are evaluated.
+
+
 ### Step 2: Use the DTO in a Controller
 
 ```php
 namespace App\Controller;
 
-use App\DTO\ExampleDTO;
+use App\DTO\ExampleDto;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -184,29 +194,14 @@ use Symfony\Component\Routing\Annotation\Route;
 class ExampleController extends AbstractController
 {
     #[Route("/example", name: "example")]
-    public function exampleAction(ExampleDTO $data): Response
+    public function exampleAction(ExampleDto $data): Response
     {
         return new Response("DTO received and validated successfully!");
     }
 }
 ```
 
-### DTO Lifecycle
-
-1. **Resolution**
-   `RequestDtoResolver` instantiates the DTO during controller argument resolving.
-
-2. **Security**
-   Symfony security checks (e.g. `#[IsGranted]`) are executed.
-
-3. **Validation**
-   An event subscriber validates the DTO and hydrates its properties if validation passes, otherwise an `Crtl\RequestDtoResolverBundle\Exception\RequestValidationException` is thrown.
-
-### Validation Group Sequences
-
-Though all variations of group sequence providers are supported you still have
-to consider unitialized properties when using strict types because of invalid input.
-Make sure to ensure properties are initialized using `isset()` or reflection.
+---
 
 ### Handling Validation Errors
 
