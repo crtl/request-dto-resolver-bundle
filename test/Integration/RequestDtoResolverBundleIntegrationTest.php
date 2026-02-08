@@ -603,7 +603,13 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
             server: [
                 'CONTENT_TYPE' => 'application/json',
             ],
-            content: json_encode([], JSON_THROW_ON_ERROR),
+            content: json_encode([
+                'arrayProperty' => 'string',
+                'intProperty' => 'string',
+                'floatProperty' => 'string',
+                'boolProperty' => 'string',
+                'stringProperty' => 1
+            ], JSON_THROW_ON_ERROR),
         );
 
         $controller = new class {

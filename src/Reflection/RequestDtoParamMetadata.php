@@ -124,6 +124,11 @@ class RequestDtoParamMetadata
         return $this->isNullable;
     }
 
+    public function hasDefaultValue(): bool
+    {
+        return $this->getReflectionProperty()->hasDefaultValue();
+    }
+
     public function getDefaultValue(): mixed
     {
         return $this->getReflectionProperty()->getDefaultValue();

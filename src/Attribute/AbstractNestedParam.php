@@ -43,6 +43,20 @@ abstract class AbstractNestedParam extends AbstractParam
         return $this->getInputBag($request)->all();
     }
 
+    public function hasValueInRequest(Request $request): bool
+    {
+        if (false === $this->parent?->hasValueInRequest($request)) {
+            return false;
+        }
+
+        $data = $this->parent
+            ? $this->parent->getValueFromRequest($request)
+            : $this->getDataFromRequest($request)
+        ;
+
+        return array_key_exists($this->getName(), $data);
+    }
+
     public function getValueFromRequest(Request $request): mixed
     {
         $name = $this->getName();

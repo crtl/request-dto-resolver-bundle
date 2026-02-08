@@ -143,12 +143,11 @@ final class RequestDtoFactoryIntegrationTest extends KernelTestCase
                 ]],
             );
         } catch (RequestDtoHydrationException $e) {
-            $this->assertCount(5, $e->violations);
-            self::assertSame('children[0].childName', $e->violations[0]->getPropertyPath());
-            self::assertSame('children[1].childName', $e->violations[1]->getPropertyPath());
-            self::assertSame('children[2].childName', $e->violations[2]->getPropertyPath());
-            self::assertSame('children[3].childName', $e->violations[3]->getPropertyPath());
-            self::assertSame('children[4].childName', $e->violations[4]->getPropertyPath());
+            $this->assertCount(4, $e->violations);
+            self::assertSame('children[1].childName', $e->violations[0]->getPropertyPath());
+            self::assertSame('children[2].childName', $e->violations[1]->getPropertyPath());
+            self::assertSame('children[3].childName', $e->violations[2]->getPropertyPath());
+            self::assertSame('children[4].childName', $e->violations[3]->getPropertyPath());
 
             throw $e;
         }

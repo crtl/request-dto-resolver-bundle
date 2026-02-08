@@ -23,6 +23,11 @@ use Symfony\Component\HttpFoundation\Request;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 class FileParam extends AbstractParam
 {
+    public function hasValueInRequest(Request $request): bool
+    {
+        return $request->files->has($this->getName());
+    }
+
     /**
      * @throws \UnexpectedValueException When FileBag::get() does not return null or `UploadedFile` instance
      */

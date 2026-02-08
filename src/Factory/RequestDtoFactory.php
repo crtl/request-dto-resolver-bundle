@@ -107,7 +107,8 @@ class RequestDtoFactory
         return $this->createInstanceRecursive(
             $className,
             $data,
-            fn (AbstractParam $attr, RequestDtoParamMetadata $paramMetadata, array $data) => $data[$paramMetadata->getPropertyName()] ?? null,
+            [$this, 'arrayValueProvider'],
+            [$this, 'arrayValueChecker'],
         );
     }
 
@@ -133,7 +134,8 @@ class RequestDtoFactory
         return $this->createInstanceRecursive(
             $className,
             $request,
-            fn (AbstractParam $attr, RequestDtoParamMetadata $paramMetadata, Request $request) => $attr->getValueFromRequest($request),
+            [$this, 'requestValueProvider'],
+            [$this, 'requestValueChecker'],
         );
     }
 
@@ -146,6 +148,7 @@ class RequestDtoFactory
      * @param class-string<TObject>                                             $className       DTO class name to instantiate
      * @param TContext                                                          $context         data source used to resolve values
      * @param callable(AbstractParam, RequestDtoParamMetadata, TContext): mixed $valueProvider   resolves a raw value for a single property
+     * @param callable(AbstractParam, RequestDtoParamMetadata, TContext): bool  $valueChecker    checks whether value exists in context, values are only assigned if valueChecker returns true
      * @param AbstractParam|null                                                $parentAttribute parent attribute for nested hydration
      * @param RequestDtoMetadata|null                                           $metadata        pre-resolved metadata for recursion reuse
      * @param string[]                                                          $stack           DTO class stack used for circular reference detection
@@ -160,6 +163,7 @@ class RequestDtoFactory
         string $className,
         Request|array $context,
         callable $valueProvider,
+        callable $valueChecker,
         ?AbstractParam $parentAttribute = null,
         ?RequestDtoMetadata $metadata = null,
         array $stack = [],
@@ -193,13 +197,14 @@ class RequestDtoFactory
                 }
             }
 
-            $requestValue = $valueProvider($attr, $propertyMetadata, $context);
-
-            $value = $requestValue
-                ?? $propertyMetadata->getDefaultValue();
+            $hasValue = $valueChecker($attr, $propertyMetadata, $context);
+            $value = null;
+            if ($hasValue) {
+                $value = $valueProvider($attr, $propertyMetadata, $context);
+            }
 
             // Property is typed with nested dto
-            if (null !== $nestedClassName && null !== $value) {
+            if (null !== $nestedClassName && $hasValue && null !== $value) {
                 $isArray = $propertyMetadata->isNestedDtoArray();
 
                 /** @var class-string<object> $nestedClassName */
@@ -224,6 +229,7 @@ class RequestDtoFactory
                                 ? $context
                                 : $nestedValue,
                             $valueProvider,
+                            $valueChecker,
                             $nestedAttr,
                             $nestedMetadata,
                             $stack,
@@ -246,6 +252,14 @@ class RequestDtoFactory
                 }
 
                 $value = $isArray ? $resultArray : $resultArray[0];
+            }
+
+            if (is_null($value) && $propertyMetadata->isNullable()) {
+                continue;
+            }
+
+            if (!$hasValue) {
+                continue;
             }
 
             try {
@@ -357,5 +371,43 @@ class RequestDtoFactory
             $violation->getConstraint(),
             $violation->getCause(),
         );
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function arrayValueProvider(
+        AbstractParam $attr,
+        RequestDtoParamMetadata $paramMetadata,
+        array $data
+    ): mixed {
+        return $data[$paramMetadata->getPropertyName()] ?? null;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function arrayValueChecker(
+        AbstractParam $attr,
+        RequestDtoParamMetadata $paramMetadata,
+        array $data
+    ): bool {
+        return array_key_exists($paramMetadata->getPropertyName(), $data);
+    }
+
+    private function requestValueProvider(
+        AbstractParam $attr,
+        RequestDtoParamMetadata $paramMetadata,
+        Request $request,
+    ): mixed {
+        return $attr->getValueFromRequest($request);
+    }
+
+    private function requestValueChecker(
+        AbstractParam $attr,
+        RequestDtoParamMetadata $paramMetadata,
+        Request $request,
+    ): bool {
+        return $attr->hasValueInRequest($request);
     }
 }

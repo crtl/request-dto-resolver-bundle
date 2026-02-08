@@ -22,6 +22,11 @@ use Symfony\Component\HttpFoundation\Request;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 class HeaderParam extends AbstractParam
 {
+    public function hasValueInRequest(Request $request): bool
+    {
+        return $request->headers->has($this->getName());
+    }
+
     public function getValueFromRequest(Request $request): ?string
     {
         return $request->headers->get($this->getName());
