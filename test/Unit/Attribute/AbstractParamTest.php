@@ -24,6 +24,11 @@ final class TestClass
 
 final class TestParam extends AbstractParam
 {
+    public function hasValueInRequest(Request $request): bool
+    {
+        return $request->request->has($this->getName());
+    }
+
     public function getValueFromRequest(Request $request): mixed
     {
         return $request->request->get($this->getName());

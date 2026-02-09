@@ -10,7 +10,3 @@ parameters:
         - src
         - test
 
-    ignoreErrors:
-        -
-            identifier: missingType.property
-            path: %currentWorkingDirectory%/test/Fixtures/Legacy

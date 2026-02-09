@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\StrictTypesDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\StrictTypesDto;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class StrictTypesDtoController

@@ -3,11 +3,7 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
          colors="true"
          cacheDirectory=".phpunit.cache"
-         executionOrder="depends,defects"
          beStrictAboutCoverageMetadata="true"
-         beStrictAboutOutputDuringTests="false"
-         failOnRisky="false"
-         failOnWarning="false"
          bootstrap="test/bootstrap.php"
 >
 
@@ -20,8 +16,12 @@
     </php>
 
     <testsuites>
-        <testsuite name="default">
-            <directory>test</directory>
+        <testsuite name="unit">
+            <directory>test/Unit</directory>
+        </testsuite>
+
+        <testsuite name="integration">
+            <directory>test/Integration</directory>
         </testsuite>
     </testsuites>
 

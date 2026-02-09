@@ -18,96 +18,27 @@ use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadata;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Validator\Constraints\GroupSequence;
-use Symfony\Component\Validator\Mapping\ClassMetadata;
-use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 
 final class RequestDtoMetadataTest extends TestCase
 {
     public function testMetadataAccessorsReturnCorrectValues(): void
     {
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'string', false),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'string', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'string'),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'string'),
             ],
-            $validatorMetadata,
         );
 
         $this->assertCount(2, iterator_to_array($metadata->getPropertyMetadataGenerator()));
-        $this->assertSame($validatorMetadata, $metadata->getValidatorMetadata());
+        $this->assertSame(DummyRequestDto::class, $metadata->getClassName());
         $this->assertEquals(DummyRequestDto::class, $metadata->getReflectionClass()->getName());
-    }
-
-    public function testIsConstrainedPropertyReturnsTrueIfPropertyHasConstraints(): void
-    {
-        $metadata = new RequestDtoMetadata(
-            DummyRequestDto::class,
-            [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
-            ],
-            $this->createMock(ClassMetadataInterface::class),
-        );
-
-        $this->assertTrue($metadata->isConstrainedProperty('prop1'));
-        $this->assertTrue($metadata->isConstrainedProperty($metadata->getPropertyMetadata('prop1')->getReflectionProperty()));
-
-        $this->assertFalse($metadata->isConstrainedProperty('prop2'));
-        $this->assertFalse($metadata->isConstrainedProperty($metadata->getPropertyMetadata('prop2')->getReflectionProperty()));
-
-        $this->assertFalse($metadata->isConstrainedProperty('nonExistent'));
-    }
-
-    public function testGetGroupSequenceReturnsArrayIfItIsSetAsArrayInValidatorMetadata(): void
-    {
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-        $validatorMetadata->method('getGroupSequence')->willReturn(null);
-
-        $metadata = new RequestDtoMetadata(
-            DummyRequestDto::class,
-            [],
-            $validatorMetadata,
-        );
-
-        $this->assertNull($metadata->getGroupSequence());
-    }
-
-    public function testGetGroupSequenceReturnsArrayFromGroupSequenceObjectInValidatorMetadata(): void
-    {
-        $groupSequence = new GroupSequence(['Group1', 'Group2']);
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-        $validatorMetadata->method('getGroupSequence')->willReturn($groupSequence);
-
-        $metadata = new RequestDtoMetadata(
-            DummyRequestDto::class,
-            [],
-            $validatorMetadata,
-        );
-
-        $this->assertEquals(['Group1', 'Group2'], $metadata->getGroupSequence());
-    }
-
-    public function testGetGroupSequenceReturnsNullIfNoSequenceIsDefinedInValidatorMetadata(): void
-    {
-        $validatorMetadata = $this->createMock(ClassMetadataInterface::class);
-        $validatorMetadata->method('getGroupSequence')->willReturn(null);
-
-        $metadata = new RequestDtoMetadata(
-            DummyRequestDto::class,
-            [],
-            $validatorMetadata,
-        );
-
-        $this->assertNull($metadata->getGroupSequence());
     }
 
     public function testNewInstancePassesArgumentsToDTOConstructorCorrectly(): void
     {
-        $metadata = new RequestDtoMetadata(RequestDtoWithConstructor::class, [], $this->createMock(ClassMetadataInterface::class));
+        $metadata = new RequestDtoMetadata(RequestDtoWithConstructor::class, []);
         $instance = $metadata->newInstance('test-param', 1, 2);
         $this->assertInstanceOf(RequestDtoWithConstructor::class, $instance);
 
@@ -116,14 +47,12 @@ final class RequestDtoMetadataTest extends TestCase
 
     public function testMetadataCanBeSerializedAndUnserializedPreservingAllProperties(): void
     {
-        $validatorMetadata = new ClassMetadata(DummyRequestDto::class);
         $metadata = new RequestDtoMetadata(
             DummyRequestDto::class,
             [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed'),
+                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed'),
             ],
-            $validatorMetadata,
         );
 
         // Access properties to populate internal state if any
@@ -135,53 +64,6 @@ final class RequestDtoMetadataTest extends TestCase
         $this->assertInstanceOf(RequestDtoMetadata::class, $unserialized);
         $this->assertEquals($metadata->getReflectionClass()->getName(), $unserialized->getReflectionClass()->getName());
         $this->assertCount(2, iterator_to_array($unserialized->getPropertyMetadataGenerator()));
-        $this->assertTrue($unserialized->isConstrainedProperty('prop1'));
-        $this->assertEquals($validatorMetadata->getClassName(), $unserialized->getValidatorMetadata()->getClassName());
-    }
-
-    public function testGetAbstractParamAttributeFromPropertyReturnsNullIfNoAttributeIsFoundOnProperty(): void
-    {
-        $metadata = new RequestDtoMetadata(
-            DummyRequestDto::class,
-            [
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop1', 'mixed', true),
-                new RequestDtoParamMetadata(DummyRequestDto::class, 'prop2', 'mixed', false),
-            ],
-            $this->createMock(ClassMetadataInterface::class),
-        );
-
-        $property = $metadata->getPropertyMetadata('prop1')->getReflectionProperty();
-
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('Property Crtl\RequestDtoResolverBundle\Test\Unit\Reflection\DummyRequestDto::$prop1 is missing an AbstractParam attribute.');
-
-        $metadata->getAbstractParamAttributeFromProperty($property);
-    }
-
-    public function testGetAbstractParamAttributeFromPropertyTriggersWarningWhenMultipleAttributesAreFoundOnProperty(): void
-    {
-        $metadata = new RequestDtoMetadata(
-            DtoWithMultipleAttributes::class,
-            [
-                new RequestDtoParamMetadata(DtoWithMultipleAttributes::class, 'prop', 'string', false),
-            ],
-            $this->createMock(ClassMetadataInterface::class),
-        );
-
-        $property = $metadata->getPropertyMetadata('prop')->getReflectionProperty();
-
-        set_error_handler(function ($errno, $errstr) {
-            $this->assertEquals(E_USER_WARNING, $errno);
-            $this->assertStringContainsString('Property Crtl\RequestDtoResolverBundle\Test\Unit\Reflection\DtoWithMultipleAttributes::$prop has more than one AbstractParam attribute', $errstr);
-
-            return true;
-        }, E_USER_WARNING);
-
-        $attribute = $metadata->getAbstractParamAttributeFromProperty($property);
-
-        restore_error_handler();
-
-        $this->assertInstanceOf(QueryParam::class, $attribute);
     }
 }
 

@@ -13,15 +13,16 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\CollectionPathTestDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MixedDtoWithDefaultsController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MultipleFilesTestController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\StrictTypesDtoController;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithGroupSequenceProvider;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\DtoWithNestedDtoArray;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\GroupSequenceProviderDTO;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\Legacy\ExampleDto;
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\TypeConflictingDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\CollectionPathTestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\DtoWithGroupSequenceProvider;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\GroupSequenceProviderDTO;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Legacy\ExampleDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Nested\DtoWithNestedDtoArray;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\NonStrictTypeConflictingDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\TypeConflictingDto;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -93,17 +94,18 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         self::assertNull($data['nullableArray']);
     }
 
-    public function testReturns400WhenValidationFails(): void
+    public function testReturns400WhenHydrationFails(): void
     {
         self::bootKernel();
         $kernel = self::$kernel;
 
+        // Sending null for non-nullable typed properties causes hydration TypeErrors
         $payload = [
-            'string' => '',      // NotBlank violation
-            'int' => null,          // NotBlank considers 0 as blank -> violation (Symfony behavior)
-            'float' => null,      // NotBlank considers 0.0 as blank -> violation
-            'bool' => false,     // NotBlank considers false as blank -> violation
-            'array' => [],       // NotBlank considers empty array as blank -> violation
+            'string' => null,    // TypeError: cannot assign null to string
+            'int' => null,       // TypeError: cannot assign null to int
+            'float' => null,     // TypeError: cannot assign null to float
+            'bool' => null,      // TypeError: cannot assign null to bool
+            'array' => null,     // TypeError: cannot assign null to array
         ];
 
         $request = Request::create(
@@ -120,11 +122,40 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
 
         $request->attributes->set('_controller', $controller);
 
-        // Replace with your concrete exception type:
-        // e.g. \Crtl\RequestDtoResolverBundle\Exception\RequestDtoValidationException::class
+        $response = $kernel->handle($request);
+
+        self::assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
+    }
+
+    public function testReturns400WhenValidationFails(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Values with correct types but failing validation constraints
+        $payload = [
+            'string' => '',      // NotBlank violation
+            'int' => 0,          // NotBlank considers 0 as blank
+            'float' => 0.0,      // NotBlank considers 0.0 as blank
+            'bool' => false,     // NotBlank considers false as blank
+            'array' => [],       // NotBlank considers empty array as blank
+        ];
+
+        $request = Request::create(
+            uri: '/_test',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            content: json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new StrictTypesDtoController();
+
+        $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        var_dump($response->getContent());
 
         self::assertValidationErrorResponse($response, ['string', 'int', 'float', 'bool', 'array']);
     }
@@ -222,7 +253,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        echo $response->getContent();
 
         self::assertSame(400, $response->getStatusCode());
     }
@@ -303,7 +333,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        echo $response->getContent();
 
         self::assertSame($expectedStatus, $response->getStatusCode());
 
@@ -408,7 +437,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $request->attributes->set('_controller', $controller);
 
         $response = $kernel->handle($request);
-        var_dump($response->getContent());
 
         self::assertValidationErrorResponse($response, [
             'property[0][key]',
@@ -503,7 +531,6 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         $response = $kernel->handle($request);
 
         $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        print_r($data);
         self::assertSame(200, $response->getStatusCode());
 
         // Provided values
@@ -576,7 +603,13 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
             server: [
                 'CONTENT_TYPE' => 'application/json',
             ],
-            content: json_encode([], JSON_THROW_ON_ERROR),
+            content: json_encode([
+                'arrayProperty' => 'string',
+                'intProperty' => 'string',
+                'floatProperty' => 'string',
+                'boolProperty' => 'string',
+                'stringProperty' => 1
+            ], JSON_THROW_ON_ERROR),
         );
 
         $controller = new class {
@@ -593,6 +626,49 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         self::assertSame(400, $response->getStatusCode());
         $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertValidationErrorResponse($response, ['arrayProperty', 'intProperty', 'floatProperty', 'boolProperty', 'stringProperty']);
+    }
+
+    public function testValuesAreCoercedDuringAssignmentWhenDtoIsNotStrict(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        // Empty request
+        $request = Request::create(
+            uri: '/_test_mixed',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+            ],
+            content: json_encode([
+                'intProperty' => '1',
+                'floatProperty' => '1.2',
+                'boolProperty' => '0',
+                'stringProperty' => 1
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(NonStrictTypeConflictingDto $dto): JsonResponse
+            {
+                return new JsonResponse(get_object_vars($dto));
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertArrayHasKey('intProperty', $data);
+        self::assertSame(1, $data['intProperty']);
+        self::assertArrayHasKey('floatProperty', $data);
+        self::assertSame(1.2, $data['floatProperty']);
+        self::assertArrayHasKey('boolProperty', $data);
+        self::assertFalse($data['boolProperty']);
+        self::assertArrayHasKey('stringProperty', $data);
+        self::assertSame('1', $data['stringProperty']);
     }
 
     /**

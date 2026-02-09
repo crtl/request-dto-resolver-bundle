@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\MultipleFilesDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\MultipleFilesDto;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 

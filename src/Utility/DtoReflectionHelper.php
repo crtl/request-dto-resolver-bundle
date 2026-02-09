@@ -89,6 +89,8 @@ class DtoReflectionHelper
      * Checks whether given object, relfection class or class name is a request dto.
      *
      * @throws \ReflectionException
+     *
+     * @phpstan-assert-if-true class-string|object $class
      */
     public function isRequestDto(string|object $class): bool
     {

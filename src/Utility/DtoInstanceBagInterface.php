@@ -14,7 +14,11 @@ declare(strict_types=1);
 namespace Crtl\RequestDtoResolverBundle\Utility;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 interface DtoInstanceBagInterface
 {
     /**
@@ -25,11 +29,37 @@ interface DtoInstanceBagInterface
     public const DTO_INSTANCES_ATTRIBUTE_KEY = '_request_dto_instances';
 
     /**
+     * Name of the request attribute that stores hydration violations.
+     *
+     * @internal
+     */
+    public const DTO_HYDRATION_VIOLATIONS_KEY = '_request_dto_hydration_violations';
+
+    /**
      * @return array<class-string, object>
      */
     public function getRegisteredInstances(Request $request): array;
 
     public function registerInstance(object $instance, Request $request): void;
+
+    /**
+     * Register constraint violation that occured during hydration of DTO.
+     *
+     * These constraints are normally violated when using strict typed DTOs
+     * with mismatching request data.
+     *
+     * @param class-string $className
+     */
+    public function registerHydrationViolations(
+        string $className,
+        ConstraintViolationListInterface $violations,
+        Request $request
+    ): void;
+
+    /**
+     * @param class-string $className
+     */
+    public function getHydrationViolations(string $className, Request $request): ?ConstraintViolationListInterface;
 
     /**
      * @param class-string $className

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller;
 
-use Crtl\RequestDtoResolverBundle\Test\Fixtures\MixedDtoWithDefaults;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\MixedDtoWithDefaults;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class MixedDtoWithDefaultsController

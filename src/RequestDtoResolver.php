@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle;
 
-use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
+use Crtl\RequestDtoResolverBundle\Factory\Exception\RequestDtoHydrationException;
+use Crtl\RequestDtoResolverBundle\Factory\RequestDtoFactory;
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,8 +31,8 @@ readonly class RequestDtoResolver implements ValueResolverInterface
 {
     public function __construct(
         private DtoInstanceBagInterface $dtoInstanceBag,
-        private RequestDtoMetadataFactory $factory,
         private DtoReflectionHelper $reflectionHelper,
+        private RequestDtoFactory $requestDtoFactory,
     ) {
     }
 
@@ -50,12 +51,11 @@ readonly class RequestDtoResolver implements ValueResolverInterface
             return [];
         }
 
-        /** @var class-string<object> $type */
-        $metadata = $this->factory->getMetadataFor($type);
-        $object = $metadata->newInstance($request);
-
-        if (null === $object) {
-            throw new \RuntimeException('Failed to instantiate request dto '.$type);
+        try {
+            $object = $this->requestDtoFactory->fromRequest($type, $request);
+        } catch (RequestDtoHydrationException $e) {
+            $object = $e->object;
+            $this->dtoInstanceBag->registerHydrationViolations(get_class($object), $e->violations, $request);
         }
 
         $this->dtoInstanceBag->registerInstance($object, $request);

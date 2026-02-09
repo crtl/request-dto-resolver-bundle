@@ -74,7 +74,7 @@ final class TypeErrorInfo
 
         if (self::ERROR_TYPE_PROPERTY === $errorType) {
             preg_match(
-                '/Cannot assign (\w+) to property ([^ ]+) of type (\w+)/',
+                '/Cannot assign ([\w\\\]+) to property ([^ ]+) of type (\w+)/',
                 $message,
                 $m,
             );

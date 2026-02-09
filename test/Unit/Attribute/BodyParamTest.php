@@ -68,4 +68,47 @@ final class BodyParamTest extends TestCase
 
         self::assertSame('John Doe', $value);
     }
+
+    public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
+    {
+        $request = new Request(request: ['param' => 'value']);
+
+        $param = new BodyParam('param');
+
+        $this->assertTrue($param->hasValueInRequest($request));
+        $this->assertFalse($param->hasValueInRequest(new Request()));
+    }
+
+    public function testHasValueInRequestWithNestedParam(): void
+    {
+        $parent = new BodyParam('parent');
+        $child = new BodyParam('child');
+        $request = new Request(request: [
+            'parent' => [
+                'child' => 'value',
+            ]
+        ]);
+
+        $child->setParent($parent);
+
+        $this->assertTrue($child->hasValueInRequest($request));
+        $this->assertFalse($child->hasValueInRequest(new Request()));
+    }
+
+    public function testHasValueInRequestWithNestedArrayParam(): void
+    {
+        $parent = new BodyParam('parent');
+        $child = new BodyParam('child');
+        $request = new Request(request: [
+            'parent' => [
+                ['child' => 'value']
+            ]
+        ]);
+
+        $parent->setIndex(0);
+        $child->setParent($parent);
+
+        $this->assertTrue($child->hasValueInRequest($request));
+        $this->assertFalse($child->hasValueInRequest(new Request()));
+    }
 }

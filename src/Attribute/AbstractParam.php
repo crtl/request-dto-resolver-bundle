@@ -83,4 +83,9 @@ abstract class AbstractParam
      * Retrieves the value from the request and returns it or null if no values was found.
      */
     abstract public function getValueFromRequest(Request $request): mixed;
+
+    /**
+     * Whether or not the request includes the value.
+     */
+    abstract public function hasValueInRequest(Request $request): bool;
 }

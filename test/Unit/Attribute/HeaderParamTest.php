@@ -24,7 +24,7 @@ final class HeaderParamTest extends TestCase
         $paramName = 'test_header';
         $paramValue = 'test_value';
 
-        $request = new Request([], [], [], [], [], ['HTTP_'.strtoupper($paramName) => $paramValue]);
+        $request = new Request(server: ['HTTP_'.strtoupper($paramName) => $paramValue]);
 
         $headerParam = new HeaderParam($paramName);
 
@@ -40,5 +40,18 @@ final class HeaderParamTest extends TestCase
         $headerParam = new HeaderParam($paramName);
 
         $this->assertNull($headerParam->getValueFromRequest($request));
+    }
+
+    public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
+    {
+        $paramName = 'test_header';
+        $paramValue = 'test_value';
+
+        $request = new Request(server: ['HTTP_'.strtoupper($paramName) => $paramValue]);
+
+        $param = new HeaderParam($paramName);
+
+        $this->assertTrue($param->hasValueInRequest($request));
+        $this->assertFalse($param->hasValueInRequest(new Request()));
     }
 }

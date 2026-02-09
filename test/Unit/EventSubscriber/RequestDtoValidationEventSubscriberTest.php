@@ -16,7 +16,6 @@ namespace Crtl\RequestDtoResolverBundle\Test\Unit\EventSubscriber;
 use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
 use Crtl\RequestDtoResolverBundle\Exception\RequestValidationException;
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBagInterface;
-use Crtl\RequestDtoResolverBundle\Validator\RequestDtoValidator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,18 +23,20 @@ use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class RequestDtoValidationEventSubscriberTest extends TestCase
 {
     private RequestDtoValidationEventSubscriber $subscriber;
 
-    private RequestDtoValidator&MockObject $validatorMock;
+    private ValidatorInterface&MockObject $validatorMock;
     private DtoInstanceBagInterface&MockObject $bag;
 
     protected function setUp(): void
     {
-        $this->validatorMock = $this->createMock(RequestDtoValidator::class);
+        $this->validatorMock = $this->createMock(ValidatorInterface::class);
         $this->bag = $this->createMock(DtoInstanceBagInterface::class);
         $this->subscriber = new RequestDtoValidationEventSubscriber(
             $this->validatorMock,
@@ -73,10 +74,49 @@ final class RequestDtoValidationEventSubscriberTest extends TestCase
             \stdClass::class => $testDto,
         ]);
 
+        $this->bag->method('getHydrationViolations')->willReturn(null);
+
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $violations->method('count')->willReturn(1);
 
-        $this->validatorMock->method('validateAndHydrate')->with($testDto)->willReturn($violations);
+        $this->validatorMock->method('validate')->with($testDto)->willReturn($violations);
+
+        $event = $this->createTestEvent(HttpKernelInterface::MAIN_REQUEST, $request);
+
+        self::expectException(RequestValidationException::class);
+        $this->subscriber->onKernelControllerArguments($event);
+    }
+
+    public function testOnKernelControllerArgumentsMergesHydrationViolationsWithValidatorViolations(): void
+    {
+        $testDto = new \stdClass();
+
+        $request = new Request();
+        $this->bag->method('getRegisteredInstances')->with($request)->willReturn([
+            \stdClass::class => $testDto,
+        ]);
+
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $violations->method('count')->willReturn(1);
+
+        $this->bag->method('getHydrationViolations')
+            ->with(\stdClass::class, $request)
+            ->willReturn($violations);
+
+        $validatorViolations = $this->createMock(ConstraintViolationListInterface::class);
+        $this->validatorMock
+            ->expects(self::once())
+            ->method('validate')
+            ->with($testDto)
+            ->willReturn($validatorViolations)
+        ;
+
+        $validatorViolations->method('count')->willReturn(1);
+        $validatorViolations
+            ->expects(self::once())
+            ->method('addAll')
+            ->with($violations)
+        ;
 
         $event = $this->createTestEvent(HttpKernelInterface::MAIN_REQUEST, $request);
 
@@ -93,16 +133,13 @@ final class RequestDtoValidationEventSubscriberTest extends TestCase
             \stdClass::class => $testDto,
         ]);
 
-        $violations = $this->createMock(ConstraintViolationListInterface::class);
-        $violations
-            ->expects(self::once())
-            ->method('count')
-            ->willReturn(0)
-        ;
+        $this->bag->method('getHydrationViolations')->willReturn(null);
+
+        $violations = new ConstraintViolationList();
 
         $this->validatorMock
             ->expects(self::once())
-            ->method('validateAndHydrate')
+            ->method('validate')
             ->with($testDto)
             ->willReturn($violations)
         ;

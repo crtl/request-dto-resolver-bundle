@@ -16,6 +16,7 @@ namespace Crtl\RequestDtoResolverBundle\Test\Unit\Utility;
 use Crtl\RequestDtoResolverBundle\Utility\DtoInstanceBag;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 final class DtoInstanceBagTest extends TestCase
 {
@@ -78,5 +79,25 @@ final class DtoInstanceBagTest extends TestCase
         $this->bag->registerInstance($instance, $this->request);
 
         $this->assertSame($instance, $this->bag->getRegisteredInstance(get_class($instance), $this->request));
+    }
+
+    public function testRegisterAndGetHydrationViolations(): void
+    {
+        $violations = new ConstraintViolationList();
+
+        $this->assertNull($this->bag->getHydrationViolations(\stdClass::class, $this->request));
+
+        $this->bag->registerHydrationViolations(\stdClass::class, $violations, $this->request);
+
+        $this->assertSame($violations, $this->bag->getHydrationViolations(\stdClass::class, $this->request));
+    }
+
+    public function testGetHydrationViolationsReturnsNullForUnregisteredClass(): void
+    {
+        $violations = new ConstraintViolationList();
+        $this->bag->registerHydrationViolations(\stdClass::class, $violations, $this->request);
+
+        // @phpstan-ignore argument.type
+        $this->assertNull($this->bag->getHydrationViolations('NonExistentClass', $this->request));
     }
 }

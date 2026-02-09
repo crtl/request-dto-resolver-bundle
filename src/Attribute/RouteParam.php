@@ -22,6 +22,17 @@ use Symfony\Component\HttpFoundation\Request;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 class RouteParam extends AbstractParam
 {
+    public function hasValueInRequest(Request $request): bool
+    {
+        $key = '_route_params';
+
+        return $request->attributes->has($key)
+            && array_key_exists(
+                $this->getName(),
+                $request->attributes->get($key, []),
+            );
+    }
+
     public function getValueFromRequest(Request $request): mixed
     {
         /** @var array<string, mixed> $routeParams */

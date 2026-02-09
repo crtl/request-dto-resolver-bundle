@@ -43,8 +43,6 @@ trait WithCacheTrait
 
     /**
      * @param class-string $className
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     private function getCacheItem(string $className): ?CacheItemInterface
     {
@@ -62,8 +60,6 @@ trait WithCacheTrait
 
     /**
      * @param class-string $className
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     private function getCachedValue(string $className): ?object
     {
@@ -78,8 +74,6 @@ trait WithCacheTrait
 
     /**
      * @param class-string $className
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     private function cacheValue(string $className, object $metadata): void
     {

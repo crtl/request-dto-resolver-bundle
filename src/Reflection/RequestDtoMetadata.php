@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Reflection;
 
-use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
-use Symfony\Component\Validator\Constraints\GroupSequence;
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
 use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 
 class RequestDtoMetadata
@@ -25,9 +24,9 @@ class RequestDtoMetadata
     private array $propertyMetadata = [];
 
     /**
-     * @var array<string, RequestDtoParamMetadata>
+     * @var \ReflectionClass<object>|null
      */
-    private array $constrainedProperties = [];
+    private ?\ReflectionClass $reflectionClass = null;
 
     /**
      * @param RequestDtoParamMetadata[] $propertyMetadata
@@ -46,20 +45,10 @@ class RequestDtoMetadata
          * @var RequestDtoParamMetadata[]
          */
         array $propertyMetadata,
-
-        /**
-         * Validator metadata of the Request DTO.
-         *
-         * @var ClassMetadataInterface
-         */
-        private readonly ClassMetadataInterface $validatorMetadata,
     ) {
-        foreach ($propertyMetadata as $propertyMetadata) {
-            $this->propertyMetadata[$propertyMetadata->getPropertyName()] = $propertyMetadata;
-
-            if ($propertyMetadata->isConstrained()) {
-                $this->constrainedProperties[$propertyMetadata->getPropertyName()] = $propertyMetadata;
-            }
+        foreach ($propertyMetadata as $propMetadata) {
+            $propertyName = $propMetadata->getPropertyName();
+            $this->propertyMetadata[$propertyName] = $propMetadata;
         }
     }
 
@@ -76,7 +65,6 @@ class RequestDtoMetadata
         return [
             'className' => $this->className,
             'propertyMetadata' => $this->propertyMetadata,
-            'validatorMetadata' => $this->validatorMetadata,
         ];
     }
 
@@ -92,14 +80,7 @@ class RequestDtoMetadata
     public function __unserialize(array $data): void
     {
         $this->className = $data['className'];
-        $this->validatorMetadata = $data['validatorMetadata'];
         $this->propertyMetadata = $data['propertyMetadata'];
-
-        foreach ($this->propertyMetadata as $metadata) {
-            if ($metadata->isConstrained()) {
-                $this->constrainedProperties[$metadata->getPropertyName()] = $metadata;
-            }
-        }
     }
 
     /**
@@ -114,23 +95,14 @@ class RequestDtoMetadata
      * Returns reflection class of request dto.
      *
      * @return \ReflectionClass<object>
+     *
+     * @throws \ReflectionException
      */
     public function getReflectionClass(): \ReflectionClass
     {
-        return new \ReflectionClass($this->className);
-    }
+        $this->reflectionClass ??= new \ReflectionClass($this->className);
 
-    /**
-     * @return \Symfony\Component\Validator\Constraint[]
-     */
-    public function getClassConstraints(): array
-    {
-        return $this->validatorMetadata->getConstraints();
-    }
-
-    public function getAbstractParamAttributeFromProperty(\ReflectionProperty $property, ?AbstractParam $parent = null): ?AbstractParam
-    {
-        return $this->propertyMetadata[$property->getName()]->getAttribute($parent);
+        return $this->reflectionClass;
     }
 
     public function getPropertyMetadataGenerator(): \Generator
@@ -140,31 +112,29 @@ class RequestDtoMetadata
         }
     }
 
-    public function getValidatorMetadata(): ClassMetadataInterface
-    {
-        return $this->validatorMetadata;
-    }
-
     /**
-     * @return array<string|string[]|GroupSequence>|null
+     * @throws \ReflectionException
+     * @throws \TypeError
      */
-    public function getGroupSequence(): ?array
+    public function assignPropertyValue(object $object, string $property, mixed $value): void
     {
-        $sequence = $this->validatorMetadata->getGroupSequence();
-        if ($sequence instanceof GroupSequence) {
-            return $sequence->groups;
+        $reflectionClass = new \ReflectionClass($object);
+        $attrs = $reflectionClass->getAttributes(RequestDto::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+        $strict = false;
+
+        if (count($attrs) > 0) {
+            /** @var RequestDto $attr */
+            $attr = $attrs[0]->newInstance();
+            $strict = $attr->strict;
         }
 
-        return $sequence;
-    }
-
-    public function isConstrainedProperty(string|\ReflectionProperty $propertyName): bool
-    {
-        if ($propertyName instanceof \ReflectionProperty) {
-            $propertyName = $propertyName->getName();
+        if ($strict) {
+            $object->$property = $value;
+        } else {
+            $reflectionClass->getProperty($property)
+                ->setValue($object, $value);
         }
-
-        return array_key_exists($propertyName, $this->constrainedProperties);
     }
 
     /**
@@ -172,12 +142,12 @@ class RequestDtoMetadata
      *
      * @throws \ReflectionException
      */
-    public function newInstance(...$args): ?object
+    public function newInstance(...$args): object
     {
         $class = $this->getReflectionClass();
 
         return $class->getConstructor()
-            ? $class->newInstanceArgs($args)
+            ? $class->newInstance(...$args)
             : $class->newInstanceWithoutConstructor()
         ;
     }

@@ -24,7 +24,7 @@ final class RouteParamTest extends TestCase
         $paramName = 'test_route';
         $paramValue = 'test_value';
 
-        $request = new Request([], [], ['_route_params' => [$paramName => $paramValue]]);
+        $request = new Request(attributes: ['_route_params' => [$paramName => $paramValue]]);
 
         $routeParam = new RouteParam($paramName);
 
@@ -35,7 +35,7 @@ final class RouteParamTest extends TestCase
     {
         $paramName = 'missing_route';
 
-        $request = new Request([], [], ['_route_params' => []]);
+        $request = new Request(attributes: ['_route_params' => []]);
 
         $routeParam = new RouteParam($paramName);
 
@@ -51,5 +51,18 @@ final class RouteParamTest extends TestCase
         $routeParam = new RouteParam($paramName);
 
         $this->assertNull($routeParam->getValueFromRequest($request));
+    }
+
+    public function testHasValueInRequestReturnsWhetherValueIsExistsInRequest(): void
+    {
+        $paramName = 'test_route';
+        $paramValue = 'test_value';
+
+        $request = new Request(attributes: ['_route_params' => [$paramName => $paramValue]]);
+
+        $param = new RouteParam($paramName);
+
+        $this->assertTrue($param->hasValueInRequest($request));
+        $this->assertFalse($param->hasValueInRequest(new Request()));
     }
 }
