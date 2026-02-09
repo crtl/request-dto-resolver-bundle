@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.0.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.2.0...v3.0.0) (2026-02-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* Validation and hydration flow has changed; `RequestDtoTrait` was removed
+
+### Features
+
+* Add strict flag to RequestDto to allow controlling type coercion when properties are assigned. ([83ca5ca](https://github.com/crtl/request-dto-resolver-bundle/commit/83ca5ca1652ab023755fdda009efc17aa0022636))
+* Only assign properties when provided with data. ([83ca5ca](https://github.com/crtl/request-dto-resolver-bundle/commit/83ca5ca1652ab023755fdda009efc17aa0022636))
+
+
+### Miscellaneous Chores
+
+* fix coverage badge in readme ([a6bde76](https://github.com/crtl/request-dto-resolver-bundle/commit/a6bde76d3851e3a9b71c0d4bf851876dc44f6357))
+
+
+### Code Refactoring
+
+* unify hydration and validation flow with circular reference detection ([83ca5ca](https://github.com/crtl/request-dto-resolver-bundle/commit/83ca5ca1652ab023755fdda009efc17aa0022636))
+
 ## [2.2.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.1.0...v2.2.0) (2026-02-04)
 
 
