@@ -45,6 +45,9 @@ class RequestDtoMetadata
          * @var RequestDtoParamMetadata[]
          */
         array $propertyMetadata,
+
+        private readonly bool $strict = false,
+        private readonly bool $defaultNull = false,
     ) {
         foreach ($propertyMetadata as $propMetadata) {
             $propertyName = $propMetadata->getPropertyName();
@@ -65,22 +68,25 @@ class RequestDtoMetadata
         return [
             'className' => $this->className,
             'propertyMetadata' => $this->propertyMetadata,
+            'strict' => $this->strict,
+            'defaultNull' => $this->defaultNull,
         ];
     }
 
     /**
      * @param array{
      *     className: class-string,
-     *     properties: string[],
-     *     constrainedProperties: string[],
-     *     validatorMetadata: ClassMetadataInterface,
      *     propertyMetadata: RequestDtoParamMetadata[],
+     *     strict: bool,
+     *     defaultNull: bool,
      * } $data
      */
     public function __unserialize(array $data): void
     {
         $this->className = $data['className'];
         $this->propertyMetadata = $data['propertyMetadata'];
+        $this->strict = $data['strict'];
+        $this->defaultNull = $data['defaultNull'];
     }
 
     /**
@@ -118,23 +124,23 @@ class RequestDtoMetadata
      */
     public function assignPropertyValue(object $object, string $property, mixed $value): void
     {
-        $reflectionClass = new \ReflectionClass($object);
-        $attrs = $reflectionClass->getAttributes(RequestDto::class, \ReflectionAttribute::IS_INSTANCEOF);
-
-        $strict = false;
-
-        if (count($attrs) > 0) {
-            /** @var RequestDto $attr */
-            $attr = $attrs[0]->newInstance();
-            $strict = $attr->strict;
-        }
-
-        if ($strict) {
+        if ($this->isStrict()) {
             $object->$property = $value;
         } else {
+            $reflectionClass = new \ReflectionClass($object);
             $reflectionClass->getProperty($property)
                 ->setValue($object, $value);
         }
+    }
+
+    public function isStrict(): bool
+    {
+        return $this->strict;
+    }
+
+    public function isDefaultNull(): bool
+    {
+        return $this->defaultNull;
     }
 
     /**

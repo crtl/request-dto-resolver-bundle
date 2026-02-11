@@ -26,10 +26,17 @@ class RequestDto
         /**
          * Whether the DTO should be hydrated in strict mode.
          *
-         * By defaults properties may cause type constraint violations when the required types mismatches with input.
+         * When null, the bundle-level `default_strict` configuration value is used.
          * If you want to attempt to coerce values instead pass `false` instead.
          */
-        public readonly bool $strict = true,
+        public readonly ?bool $strict = null,
+
+        /**
+         * Whether unset properties should default to null instead of being left uninitialized.
+         *
+         * When null, the bundle-level `default_null` configuration value is used.
+         */
+        public readonly ?bool $defaultNull = null,
     ) {
     }
 }

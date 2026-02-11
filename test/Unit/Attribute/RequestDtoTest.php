@@ -24,10 +24,16 @@ final class RequestDtoTest extends TestCase
         self::expectNotToPerformAssertions();
     }
 
-    public function testStrictIsTrueByDefault(): void
+    public function testStrictIsNullByDefault(): void
     {
         $instance = new RequestDto();
-        self::assertTrue($instance->strict);
+        self::assertNull($instance->strict);
+    }
+
+    public function testDefaultNullIsNullByDefault(): void
+    {
+        $instance = new RequestDto();
+        self::assertNull($instance->defaultNull);
     }
 
     public function testConstructorAcceptsStrictOption(): void
@@ -37,5 +43,14 @@ final class RequestDtoTest extends TestCase
 
         $instance = new RequestDto(strict: false);
         self::assertFalse($instance->strict);
+    }
+
+    public function testConstructorAcceptsDefaultNullOption(): void
+    {
+        $instance = new RequestDto(defaultNull: true);
+        self::assertTrue($instance->defaultNull);
+
+        $instance = new RequestDto(defaultNull: false);
+        self::assertFalse($instance->defaultNull);
     }
 }

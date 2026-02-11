@@ -48,6 +48,40 @@ return [
 ];
 ```
 
+### Bundle Options
+
+The bundle exposes two options under the `crtl_request_dto_resolver` key:
+
+```yaml
+# config/packages/crtl_request_dto_resolver.yaml
+crtl_request_dto_resolver:
+    default_strict: true   # default: true
+    default_null: false     # default: false
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `default_strict` | `bool` | `true` | Controls how property values are assigned during hydration. When `true`, values are assigned directly (`$object->prop = $value`), which enforces PHP's native type checks. When `false`, values are assigned via reflection, allowing implicit type coercion. |
+| `default_null` | `bool` | `false` | When `true`, properties that are missing from the request are treated as if `null` was sent. For non-nullable properties this produces a type constraint violation; for nullable properties the value is skipped as usual. |
+
+These serve as **bundle-level defaults**. Individual DTOs can override them via the `#[RequestDto]` attribute:
+
+```php
+// Uses bundle defaults for both options
+#[RequestDto]
+class MyDto { /* ... */ }
+
+// Overrides strict for this DTO only
+#[RequestDto(strict: false)]
+class NonStrictDto { /* ... */ }
+
+// Overrides defaultNull for this DTO only
+#[RequestDto(defaultNull: true)]
+class RequireAllFieldsDto { /* ... */ }
+```
+
+When the attribute parameter is omitted (or explicitly set to `null`), the bundle-level default is used.
+
 ## Usage
 
 ### Step 1: Define a Request DTO

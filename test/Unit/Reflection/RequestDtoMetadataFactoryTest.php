@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Test\Unit\Reflection;
 
+use Crtl\RequestDtoResolverBundle\Configuration;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadata;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoMetadataFactory;
 use Crtl\RequestDtoResolverBundle\Reflection\RequestDtoParamMetadata;
@@ -32,11 +33,14 @@ final class RequestDtoMetadataFactoryTest extends TestCase
 
     private RequestDtoMetadataFactory $factory;
 
+    private Configuration $configuration;
+
     protected function setUp(): void
     {
         $this->reflectionHelper = $this->createMock(DtoReflectionHelper::class);
         $this->paramMetadataFactory = $this->createMock(RequestDtoParamMetadataFactory::class);
-        $this->factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory);
+        $this->configuration = new Configuration(true, false);
+        $this->factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory, $this->configuration);
     }
 
     public function testGetMetadataForReturnsRequestDtoMetadataForGivenClassName(): void
@@ -69,10 +73,10 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $cacheItem = $this->createMock(CacheItemInterface::class);
         $cachedMetadata = $this->createMock(RequestDtoMetadata::class);
 
-        $factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory, $cache);
+        $factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory, $this->configuration, $cache);
 
         $className = DummyDto::class;
-        $cacheKey = $factory->getCacheKey($className); // str_replace('\\', '_', $className).'_'.str_replace('\\', '_', RequestDtoMetadata::class);
+        $cacheKey = $factory->getCacheKey($className);
 
         $cache->expects($this->once())
             ->method('getItem')
@@ -97,10 +101,15 @@ final class RequestDtoMetadataFactoryTest extends TestCase
         $cache = $this->createMock(CacheItemPoolInterface::class);
         $cacheItem = $this->createMock(CacheItemInterface::class);
 
-        $factory = new RequestDtoMetadataFactory($this->reflectionHelper, $this->paramMetadataFactory, $cache);
+        $factory = new RequestDtoMetadataFactory(
+            $this->reflectionHelper,
+            $this->paramMetadataFactory,
+            $this->configuration,
+            $cache
+        );
 
         $className = DummyDto::class;
-        $cacheKey = $factory->getCacheKey($className); // str_replace('\\', '_', $className).'_'.str_replace('\\', '_', RequestDtoMetadata::class);
+        $cacheKey = $factory->getCacheKey($className);
 
         $cache->expects($this->once())
             ->method('getItem')

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle\Reflection;
 
+use Crtl\RequestDtoResolverBundle\Attribute\RequestDto;
+use Crtl\RequestDtoResolverBundle\Configuration;
 use Crtl\RequestDtoResolverBundle\Utility\DtoReflectionHelper;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -23,6 +25,7 @@ class RequestDtoMetadataFactory
     public function __construct(
         private readonly DtoReflectionHelper $reflectionHelper,
         private readonly RequestDtoParamMetadataFactory $requestDtoParamMetadataFactory,
+        private readonly Configuration $configuration,
         ?CacheItemPoolInterface $cache = null,
     ) {
         $this->cache = $cache;
@@ -46,6 +49,12 @@ class RequestDtoMetadataFactory
             throw new \LogicException(sprintf('DTO class "%s" must be instantiable.', $reflectionClass->getName()));
         }
 
+        $classAttrs = $reflectionClass->getAttributes(RequestDto::class, \ReflectionAttribute::IS_INSTANCEOF);
+        /** @var RequestDto $classAttr */
+        $classAttr = count($classAttrs) > 0
+            ? $classAttrs[0]->newInstance()
+            : null;
+
         $properties = $this->reflectionHelper->getAttributedProperties($reflectionClass);
 
         $propertyMetadata = [];
@@ -56,6 +65,8 @@ class RequestDtoMetadataFactory
         $metadata = new RequestDtoMetadata(
             $className,
             $propertyMetadata,
+            strict: $classAttr->strict ?? $this->configuration->getDefaultStrict(),
+            defaultNull: $classAttr->defaultNull ?? $this->configuration->getDefaultNull(),
         );
 
         $this->cacheValue($className, $metadata);

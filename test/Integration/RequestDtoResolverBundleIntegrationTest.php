@@ -17,6 +17,7 @@ use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MixedDtoWithDefaultsC
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\MultipleFilesTestController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Controller\StrictTypesDtoController;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\CollectionPathTestDto;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\DefaultNullDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\DtoWithGroupSequenceProvider;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\GroupSequenceProviderDTO;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\Legacy\ExampleDto;
@@ -669,6 +670,116 @@ final class RequestDtoResolverBundleIntegrationTest extends KernelTestCase
         self::assertFalse($data['boolProperty']);
         self::assertArrayHasKey('stringProperty', $data);
         self::assertSame('1', $data['stringProperty']);
+    }
+
+    public function testDefaultNullDtoReturns400ForMissingNonNullableProperties(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        $request = Request::create(
+            uri: '/_test',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            content: json_encode([], JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(DefaultNullDto $dto): JsonResponse
+            {
+                return new JsonResponse(get_object_vars($dto));
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertValidationErrorResponse($response, ['nonNullableString', 'nonNullableInt']);
+    }
+
+    public function testDefaultNullDtoReturns200WhenAllPropertiesAreProvided(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        $payload = [
+            'nullableString' => 'hello',
+            'nullableInt' => 7,
+            'nonNullableString' => 'world',
+            'nonNullableInt' => 42,
+        ];
+
+        $request = Request::create(
+            uri: '/_test',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            content: json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(DefaultNullDto $dto): JsonResponse
+            {
+                return new JsonResponse(get_object_vars($dto));
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('hello', $data['nullableString']);
+        self::assertSame(7, $data['nullableInt']);
+        self::assertSame('world', $data['nonNullableString']);
+        self::assertSame(42, $data['nonNullableInt']);
+    }
+
+    public function testDefaultNullDtoReturns200WhenOnlyNonNullablePropertiesAreProvided(): void
+    {
+        self::bootKernel();
+        $kernel = self::$kernel;
+
+        $payload = [
+            'nonNullableString' => 'world',
+            'nonNullableInt' => 42,
+        ];
+
+        $request = Request::create(
+            uri: '/_test',
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            content: json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        $controller = new class {
+            public function __invoke(DefaultNullDto $dto): JsonResponse
+            {
+                return new JsonResponse([
+                    'nonNullableString' => $dto->nonNullableString,
+                    'nonNullableInt' => $dto->nonNullableInt,
+                ]);
+            }
+        };
+
+        $request->attributes->set('_controller', $controller);
+
+        $response = $kernel->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('world', $data['nonNullableString']);
+        self::assertSame(42, $data['nonNullableInt']);
     }
 
     /**
