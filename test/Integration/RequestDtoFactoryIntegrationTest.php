@@ -16,6 +16,7 @@ namespace Crtl\RequestDtoResolverBundle\Test\Integration;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\CircularReferenceException;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\RequestDtoHydrationException;
 use Crtl\RequestDtoResolverBundle\Factory\RequestDtoFactory;
+use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\DefaultNullDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\CircularReferencingRequestDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\MixedType\MixedRequestDto;
 use Crtl\RequestDtoResolverBundle\Test\Fixtures\Dto\New\StrictTypes\NonStrictRequestDto;
@@ -476,6 +477,85 @@ final class RequestDtoFactoryIntegrationTest extends KernelTestCase
             self::assertRequestDtoHydrationException($e, $expectedViolations);
             throw $e;
         }
+    }
+
+    public function test_fromArray_defaultNull_hydrates_nullable_properties_as_null_when_missing(): void
+    {
+        $dto = $this->factory->fromArray(DefaultNullDto::class, [
+            'nonNullableString' => 'hello',
+            'nonNullableInt' => 42,
+        ]);
+
+        self::assertSame('hello', $dto->nonNullableString);
+        self::assertSame(42, $dto->nonNullableInt);
+    }
+
+    public function test_fromArray_defaultNull_throws_violations_for_non_nullable_properties_when_missing(): void
+    {
+        self::expectException(RequestDtoHydrationException::class);
+
+        try {
+            $this->factory->fromArray(DefaultNullDto::class, []);
+        } catch (RequestDtoHydrationException $e) {
+            self::assertRequestDtoHydrationException($e, ['nonNullableString', 'nonNullableInt']);
+            throw $e;
+        }
+    }
+
+    public function test_fromArray_defaultNull_hydrates_all_properties_when_provided(): void
+    {
+        $dto = $this->factory->fromArray(DefaultNullDto::class, [
+            'nullableString' => 'value',
+            'nullableInt' => 7,
+            'nonNullableString' => 'hello',
+            'nonNullableInt' => 42,
+        ]);
+
+        self::assertSame('value', $dto->nullableString);
+        self::assertSame(7, $dto->nullableInt);
+        self::assertSame('hello', $dto->nonNullableString);
+        self::assertSame(42, $dto->nonNullableInt);
+    }
+
+    public function test_fromRequest_defaultNull_throws_violations_for_non_nullable_properties_when_missing(): void
+    {
+        self::expectException(RequestDtoHydrationException::class);
+
+        $request = Request::create(
+            uri: '/',
+            method: 'POST',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode([], JSON_THROW_ON_ERROR),
+        );
+
+        try {
+            $this->factory->fromRequest(DefaultNullDto::class, $request);
+        } catch (RequestDtoHydrationException $e) {
+            self::assertRequestDtoHydrationException($e, ['nonNullableString', 'nonNullableInt']);
+            throw $e;
+        }
+    }
+
+    public function test_fromRequest_defaultNull_hydrates_all_properties_when_provided(): void
+    {
+        $request = Request::create(
+            uri: '/',
+            method: 'POST',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode([
+                'nullableString' => 'value',
+                'nullableInt' => 7,
+                'nonNullableString' => 'hello',
+                'nonNullableInt' => 42,
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $dto = $this->factory->fromRequest(DefaultNullDto::class, $request);
+
+        self::assertSame('value', $dto->nullableString);
+        self::assertSame(7, $dto->nullableInt);
+        self::assertSame('hello', $dto->nonNullableString);
+        self::assertSame(42, $dto->nonNullableInt);
     }
 
     /**

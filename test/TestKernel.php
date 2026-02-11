@@ -44,7 +44,7 @@ final class TestKernel extends Kernel
 
     public function getCacheDir(): string
     {
-        return __DIR__.'/../var/cache/'.$this->environment.'/'.uniqid();
+        return sys_get_temp_dir() . "/crtl_request_dto_resolver_bundle/cache";
     }
 
     public function getLogDir(): string

@@ -17,6 +17,7 @@ use Crtl\RequestDtoResolverBundle\Attribute\AbstractNestedParam;
 use Crtl\RequestDtoResolverBundle\Attribute\AbstractParam;
 use Crtl\RequestDtoResolverBundle\Attribute\FileParam;
 use Crtl\RequestDtoResolverBundle\Attribute\QueryParam;
+use Crtl\RequestDtoResolverBundle\Configuration;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\CircularReferenceException;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\PropertyHydrationException;
 use Crtl\RequestDtoResolverBundle\Factory\Exception\RequestDtoHydrationException;
@@ -201,6 +202,8 @@ class RequestDtoFactory
             $value = null;
             if ($hasValue) {
                 $value = $valueProvider($attr, $propertyMetadata, $context);
+            } else if ($metadata->isDefaultNull()) {
+                $hasValue = true;
             }
 
             // Property is typed with nested dto
@@ -255,10 +258,6 @@ class RequestDtoFactory
                 }
 
                 $value = $isArray ? $resultArray : $resultArray[0];
-            }
-
-            if (is_null($value) && $propertyMetadata->isNullable()) {
-                continue;
             }
 
             if (!$hasValue) {

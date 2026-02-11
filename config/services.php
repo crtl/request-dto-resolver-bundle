@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Crtl\RequestDtoResolverBundle\Configuration;
 use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestDtoValidationEventSubscriber;
 use Crtl\RequestDtoResolverBundle\EventSubscriber\RequestValidationExceptionEventSubscriber;
 use Crtl\RequestDtoResolverBundle\Factory\RequestDtoFactory;
@@ -33,6 +34,9 @@ return static function (ContainerConfigurator $container): void {
     $services->defaults()
         ->autowire(false)
         ->autoconfigure(false);
+
+    $services->set(Configuration::class)
+        ->private();
 
     $services->set(DtoReflectionHelper::class)
         ->private();
@@ -72,6 +76,7 @@ return static function (ContainerConfigurator $container): void {
         ->args([
             '$reflectionHelper' => service(DtoReflectionHelper::class),
             '$requestDtoParamMetadataFactory' => service(RequestDtoParamMetadataFactory::class),
+            '$configuration' => service(Configuration::class),
             '$cache' => service('cache.system'),
         ]);
 
