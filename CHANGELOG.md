@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v3.0.0...v3.1.0) (2026-02-11)
+
+
+### Features
+
+* Adds configuration for default strict and null value behaviour. ([#22](https://github.com/crtl/request-dto-resolver-bundle/issues/22)) ([5d3dd02](https://github.com/crtl/request-dto-resolver-bundle/commit/5d3dd0207aaf0f6156792081642b97d454206c6e))
+
 ## [3.0.0](https://github.com/crtl/request-dto-resolver-bundle/compare/v2.2.0...v3.0.0) (2026-02-09)
 
 
