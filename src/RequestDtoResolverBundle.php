@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Crtl\RequestDtoResolverBundle;
 
-use Crtl\RequestDtoResolverBundle\Factory\RequestDtoFactory;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -50,12 +49,5 @@ class RequestDtoResolverBundle extends AbstractBundle
         $builder->getDefinition(Configuration::class)
             ->setArgument('$defaultStrict', $config['default_strict'])
             ->setArgument('$defaultNull', $config['default_null']);
-
-        $env = $builder->getParameter('kernel.environment');
-
-        // Test overrides should come last
-        if ('test' === $env) {
-            $container->import('../config/services_test.php');
-        }
     }
 }
